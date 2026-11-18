@@ -421,7 +421,8 @@ async function sendMail(data){
 }
 const okEmail=s=>/^\S+@\S+\.\S+$/.test(s);
 function fallback(box,text){
-  box.innerHTML=`<strong>This preview cannot send email.</strong> On the live site this goes straight to the inbox. To send it now, copy the message and email it to <code>${CONTACT_EMAIL}</code>.<pre></pre><button class="btn ghost" type="button">Copy message</button>`;
+  const lead=LIVE?'<strong>This could not be sent automatically.</strong> Please copy the message and email it to':'<strong>This preview cannot send email.</strong> On the live site this goes straight to the inbox. To send it now, copy the message and email it to';
+  box.innerHTML=`${lead} <code>${CONTACT_EMAIL}</code>.<pre></pre><button class="btn ghost" type="button">Copy message</button>`;
   box.querySelector('pre').textContent=text;
   box.querySelector('button').onclick=async ev=>{
     try{await navigator.clipboard.writeText(text);ev.target.textContent='Copied'}
@@ -439,7 +440,7 @@ document.getElementById('inquiry').addEventListener('submit',async e=>{
     name:v('f-name'),company:v('f-company')||'-',email:v('f-email'),inquiry_type:v('f-type'),date:v('f-date')||'Flexible',budget:v('f-budget'),message:v('f-msg')};
   btn.disabled=true;btn.textContent='Sending';box.textContent='Sending your inquiry.';
   try{await sendMail(data);box.innerHTML='<strong>Inquiry sent.</strong> Thank you. Expect a reply within 3 business days.';e.target.querySelectorAll('input,textarea').forEach(i=>i.value='')}
-  catch(err){fallback(box,`Inquiry: ${data.inquiry_type}\nFrom: ${data.name} (${data.company})\nEmail: ${data.email}\nDate: ${data.date}\nBudget: ${data.budget}\n\n${data.message}`)}
+  catch(err){console.warn('Form send failed:',err.message);fallback(box,`Inquiry: ${data.inquiry_type}\nFrom: ${data.name} (${data.company})\nEmail: ${data.email}\nDate: ${data.date}\nBudget: ${data.budget}\n\n${data.message}`)}
   finally{btn.disabled=false;btn.textContent='Send inquiry'}
 });
 document.getElementById('signup').addEventListener('submit',async e=>{
@@ -449,7 +450,7 @@ document.getElementById('signup').addEventListener('submit',async e=>{
   if(!okEmail(em)){box.textContent='Enter a valid email address.';return}
   btn.disabled=true;
   try{await sendMail({_subject:'New Inner Circle signup',_captcha:'false',_template:'table',email:em});box.innerHTML='<strong>You are on the list.</strong> Watch your inbox for the next release.';document.getElementById('s-email').value=''}
-  catch(err){fallback(box,`Please add me to the Inner Circle mailing list: ${em}`)}
+  catch(err){console.warn('Form send failed:',err.message);fallback(box,`Please add me to the Inner Circle mailing list: ${em}`)}
   finally{btn.disabled=false}
 });
 
