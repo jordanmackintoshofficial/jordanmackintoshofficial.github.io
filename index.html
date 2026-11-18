@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jordan Mackintosh Music</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@300;400;500&display=swap">
+<style>
+/* Layout: the gold JM crest over a night skyline, then quiet single-column sections divided by thin gold rules. Single dark look by choice (matches the brand). */
+:root{
+  --night:#0b0a08; --velvet:#14120e; --gold:#c9a45c; --gold-hi:#f1d99a; --ivory:#ece5d6; --smoke:#9b927f;
+  --line:rgba(201,164,92,.28);
+  --f-mark:"Cinzel","Trajan Pro",Georgia,serif;
+  --f-display:"Cormorant Garamond","Garamond",Georgia,serif;
+  --f-body:"Jost","Futura","Helvetica Neue",Arial,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{background:var(--night);color:var(--ivory);font-family:var(--f-body);font-weight:300;font-size:16px;line-height:1.65}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--night)}
+a{color:var(--gold-hi)}
+:focus-visible{outline:2px solid var(--gold-hi);outline-offset:3px}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.eyebrow{font-family:var(--f-mark);font-size:.72rem;letter-spacing:.38em;text-transform:uppercase;color:var(--gold)}
+h2{font-family:var(--f-display);font-weight:500;font-size:clamp(2rem,4.5vw,3rem);line-height:1.1;margin:.3em 0 0;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:600;font-size:1.45rem;margin:0;line-height:1.2}
+.muted{color:var(--smoke)}
+.btn{display:inline-flex;align-items:center;gap:.6em;font-family:var(--f-mark);font-size:.78rem;letter-spacing:.22em;text-transform:uppercase;text-decoration:none;padding:.95em 1.6em;border:1px solid var(--gold);color:var(--night);background:linear-gradient(135deg,var(--gold-hi),var(--gold));cursor:pointer;transition:filter .2s}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:transparent;color:var(--gold-hi)}
+.btn.ghost:hover{background:rgba(201,164,92,.1)}
+.btn[disabled]{opacity:.6;cursor:wait}
+.center{text-align:center}
+
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(11,10,8,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px}
+.logo{font-family:var(--f-mark);font-weight:600;letter-spacing:.3em;color:var(--gold-hi);text-decoration:none;font-size:.95rem;white-space:nowrap}
+nav.links{display:flex;gap:24px}
+nav.links a{font-size:.76rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ivory);text-decoration:none;opacity:.8}
+nav.links a:hover{opacity:1;color:var(--gold-hi)}
+.menu-btn{display:none;background:none;border:1px solid var(--line);color:var(--gold-hi);font-family:var(--f-mark);letter-spacing:.2em;font-size:.72rem;padding:.6em 1em;cursor:pointer}
+@media (max-width:860px){
+  .menu-btn{display:block}
+  nav.links{display:none;position:absolute;left:0;right:0;top:100%;flex-direction:column;gap:0;background:var(--night);border-bottom:1px solid var(--line);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  nav.links.open{display:flex}
+  nav.links a{padding:14px 0;border-top:1px solid var(--line)}
+}
+
+/* Hero */
+.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+#skyline{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hero::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(11,10,8,.55),rgba(11,10,8,.9) 70%);pointer-events:none}
+.hero .wrap{position:relative;z-index:1;text-align:center;padding-block:clamp(48px,8vw,96px) clamp(48px,7vw,80px)}
+/* Crest: the JM logo rebuilt in live type so it stays sharp at any size */
+.crest{display:inline-flex;flex-direction:column;align-items:center;filter:drop-shadow(0 0 24px rgba(201,164,92,.22));--gg:linear-gradient(175deg,#f8e7b0 0%,#d9b46a 30%,#a7803b 55%,#e9cd86 75%,#b48a42 100%)}
+.gold{background:var(--gg);-webkit-background-clip:text;background-clip:text;color:transparent}
+.jm{position:relative;display:flex;align-items:flex-start;font-family:var(--f-display);font-weight:500;line-height:.8;font-size:clamp(7rem,20vw,11.5rem)}
+.jm .jsvg{width:.62em;height:1em;flex:none;overflow:visible;position:relative;z-index:1}
+.jm .m{margin-left:-.26em;margin-top:.2em;font-size:.82em;letter-spacing:-.02em}
+.jm svg:not(.jsvg){position:absolute;right:-.2em;top:.5em;width:.17em;height:.17em;animation:glint 3.5s ease-in-out infinite}
+@keyframes glint{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(.8)}}
+.c-first{font-family:var(--f-display);font-weight:500;font-size:clamp(2rem,6.4vw,3.6rem);letter-spacing:.32em;padding-left:.32em;line-height:1;margin-top:.35em}
+.c-last{display:flex;align-items:center;gap:.9em;font-family:var(--f-body);font-weight:500;font-size:clamp(.72rem,2vw,1.05rem);letter-spacing:.42em;padding-left:.42em;color:#d4b06a;margin-top:.7em}
+.c-last::before,.c-last::after{content:"";width:2.6em;height:1px;background:#b58c45}
+.wave{width:clamp(140px,26vw,220px);height:auto;margin-top:.6em;display:block}
+.motto{margin-top:20px;font-family:var(--f-mark);font-size:.76rem;letter-spacing:.45em;color:var(--smoke)}
+.hero .cta{margin-top:30px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+
+section.act{padding-block:clamp(64px,9vw,104px);border-bottom:1px solid var(--line)}
+.head-row{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap;margin-bottom:40px}
+
+.cover{display:block;width:100%;max-width:100%;aspect-ratio:1;object-fit:cover;border:1px solid var(--line);box-shadow:0 30px 60px -25px rgba(0,0,0,.9);background:var(--velvet)}
+.feature{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:clamp(28px,5vw,64px);align-items:center}
+@media (max-width:760px){.feature{grid-template-columns:1fr}.sleeve{margin-right:22%}}
+.feature .meta{display:flex;flex-direction:column;gap:18px;min-width:0}
+.feature h2 em{font-style:italic;color:var(--gold-hi)}
+.facts{display:flex;gap:28px;flex-wrap:wrap;font-size:.9rem}
+.facts div{display:flex;flex-direction:column}
+.facts b{font-family:var(--f-mark);font-weight:400;font-size:.65rem;letter-spacing:.3em;color:var(--gold);text-transform:uppercase}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+/* Latest release as a record sleeve with the vinyl sliding out */
+.sleeve{position:relative;width:min(340px,70vw);max-width:100%;margin-right:clamp(40px,9vw,110px);justify-self:center}
+.sleeve .cover{position:relative;z-index:1;image-rendering:auto}
+.record{position:absolute;top:4%;left:4%;width:92%;aspect-ratio:1;border-radius:50%;transform:translateX(38%);transition:transform .8s cubic-bezier(.2,.7,.2,1);
+  background:radial-gradient(circle,#0b0a08 0 3%,transparent 3.2%),radial-gradient(circle,var(--gold) 0 17%,transparent 17.5%),repeating-radial-gradient(circle,#161410 0 1px,#0c0b09 1.5px 3px);
+  box-shadow:0 20px 40px -15px rgba(0,0,0,.9),inset 0 0 0 1px rgba(201,164,92,.25);animation:spin 9s linear infinite paused}
+.record span{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 30deg,transparent 0 20%,rgba(255,255,255,.07) 25%,transparent 30% 70%,rgba(255,255,255,.05) 75%,transparent 80%)}
+.sleeve:hover .record{transform:translateX(48%)}
+@keyframes spin{to{rotate:360deg}}
+.sleeve:hover .record{animation-play-state:running}
+.feature .sleeve .cover::after{content:""}
+#spotifySlot iframe{width:100%;height:152px;border:0;border-radius:12px;display:block}
+/* Brand offerings */
+.offers{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:40px}
+.offers div{background:var(--night);padding:28px 24px;display:flex;flex-direction:column;gap:8px}
+.offers p{margin:0;color:var(--smoke);font-size:.92rem}
+
+/* Listen: one quiet row of text links */
+.platform-links{display:flex;flex-wrap:wrap;justify-content:center;gap:18px 44px;margin-top:32px}
+.platform-links a{font-family:var(--f-body);font-weight:400;font-size:.95rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ivory);text-decoration:none;opacity:.85;transition:color .2s,opacity .2s}
+.platform-links a:hover{color:var(--gold-hi);opacity:1}
+
+/* Videos: minimal frames, caption underneath */
+.videos{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,4vw,48px)}
+@media (max-width:760px){.videos{grid-template-columns:1fr}}
+.video{display:flex;flex-direction:column;gap:14px;min-width:0;text-decoration:none;color:inherit}
+.frame{aspect-ratio:16/9;width:100%;max-width:100%;position:relative;overflow:hidden;background:#000}
+.frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.6) saturate(.85);transition:filter .5s,transform .8s}
+a.video:hover .frame img{filter:brightness(.8) saturate(1);transform:scale(1.03)}
+.play{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;border:1px solid rgba(241,217,154,.8);display:flex;align-items:center;justify-content:center}
+.play::after{content:"";border-left:14px solid var(--gold-hi);border-top:9px solid transparent;border-bottom:9px solid transparent;margin-left:4px}
+.cap{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.cap h3{font-weight:500;font-size:1.35rem}
+.cap span{font-family:var(--f-mark);font-size:.62rem;letter-spacing:.3em;color:var(--gold);text-transform:uppercase;white-space:nowrap}
+
+/* TikTok */
+.tiktok{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:clamp(28px,5vw,64px);align-items:center}
+@media (max-width:760px){.tiktok{grid-template-columns:1fr}}
+.handle{font-family:var(--f-display);font-style:italic;font-size:clamp(2.6rem,7vw,4.4rem);line-height:1;color:var(--gold-hi);margin:.2em 0 .3em;word-break:break-word}
+.tiktok p{max-width:46ch}
+.phone{justify-self:center;width:min(300px,100%);aspect-ratio:9/16;border:1px solid var(--line);border-radius:28px;background:radial-gradient(ellipse at 50% 30%,rgba(201,164,92,.18),transparent 60%),var(--velvet);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center;position:relative;overflow:hidden}
+.phone img{width:44%;height:auto;opacity:.9}
+.phone .h{font-family:var(--f-mark);letter-spacing:.2em;font-size:.85rem;color:var(--ivory)}
+.tt-embed{justify-self:center;width:100%;max-width:340px;min-width:0}
+
+/* Shows */
+.empty{border:1px solid var(--line);padding:clamp(28px,5vw,48px);text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
+.empty h3{font-weight:500}
+.empty p{margin:0;max-width:44ch;color:var(--smoke)}
+
+/* Discography */
+.disc{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px}
+@media (max-width:900px){.disc{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:440px){.disc{grid-template-columns:1fr}}
+.rel{display:flex;flex-direction:column;gap:10px;min-width:0}
+.rel img{transition:transform .35s ease}
+.rel:hover img{transform:translateY(-4px)}
+.rel small{color:var(--smoke);font-size:.8rem;font-variant-numeric:tabular-nums}
+.rel ol{margin:4px 0 0;padding-left:1.3em;font-size:.85rem;color:var(--smoke)}
+.rel ol li span{float:right;font-variant-numeric:tabular-nums}
+
+.about p{max-width:62ch}
+.lede{font-family:var(--f-display);font-style:italic;font-size:1.6rem;line-height:1.35;color:var(--gold-hi);margin:.6em 0}
+
+/* Contact */
+form.big{display:grid;grid-template-columns:1fr 1fr;gap:20px;background:var(--velvet);border:1px solid var(--line);padding:clamp(20px,4vw,40px)}
+@media (max-width:640px){form.big{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field.full{grid-column:1/-1}
+label{font-family:var(--f-mark);font-size:.66rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gold)}
+input,select,textarea{font:inherit;font-weight:400;color:var(--ivory);background:var(--night);border:1px solid var(--line);padding:12px 14px;width:100%;border-radius:0}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold-hi)}
+textarea{min-height:120px;resize:vertical}
+.hp{position:absolute;left:-9999px}
+.form-foot{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.form-foot p{margin:0;font-size:.82rem;color:var(--smoke)}
+.status{grid-column:1/-1;border:1px solid var(--gold);padding:18px;font-size:.92rem}
+.status pre{white-space:pre-wrap;font-family:var(--f-body);background:var(--night);padding:14px;border:1px solid var(--line);margin:12px 0;font-size:.85rem}
+.status code{color:var(--gold-hi);user-select:all;word-break:break-all}
+
+.circle form{display:flex;max-width:520px;margin:28px auto 0}
+.circle input{flex:1;min-width:0}
+.circle .status{max-width:520px;margin:16px auto 0;text-align:left}
+footer{padding-block:48px;text-align:center}
+footer .platform-links{margin:0 0 24px;gap:14px 32px}
+footer .platform-links a{font-size:.78rem}
+footer small{color:var(--smoke);font-size:.75rem;letter-spacing:.1em}
+</style>
+
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#home">JORDAN MACKINTOSH</a>
+    <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="navLinks">Menu</button>
+    <nav class="links" id="navLinks">
+      <a href="#latest">Listen</a>
+      <a href="#tiktok">TikTok</a>
+      <a href="#videos">Videos</a>
+      <a href="#discography">Music</a>
+      <a href="#shows">Shows</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" id="home">
+  <canvas id="skyline" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <h1 style="margin:0;font-weight:inherit" aria-label="Jordan Mackintosh">
+      <span class="crest" aria-hidden="true">
+        <span class="jm"><svg class="jsvg" viewBox="-30 -4 130 210" aria-hidden="true"><defs><linearGradient id="jg" x1="0" y1="0" x2=".3" y2="1"><stop offset="0" stop-color="#f8e7b0"/><stop offset=".35" stop-color="#d9b46a"/><stop offset=".6" stop-color="#a7803b"/><stop offset=".8" stop-color="#e9cd86"/><stop offset="1" stop-color="#b48a42"/></linearGradient></defs><path d="M24 0 H80 V3 H24Z" fill="url(#jg)"/><path d="M44 3 H62 V138 C62 176 34 190 12 176 C34 180 47 166 47 136 Z" fill="url(#jg)"/><path d="M38 62 C-2 60 -26 112 -12 152 C2 192 58 200 82 168" fill="none" stroke="url(#jg)" stroke-width="2.6" stroke-linecap="round"/><path d="M-6 150 C-4 176 24 186 40 174" fill="none" stroke="url(#jg)" stroke-width="1.6" stroke-linecap="round"/></svg><span class="m gold">M</span><svg viewBox="0 0 20 20"><path d="M10 0 L11.3 8.7 L20 10 L11.3 11.3 L10 20 L8.7 11.3 L0 10 L8.7 8.7Z" fill="#f1d99a"/></svg></span>
+        <span class="c-first gold">JORDAN</span>
+        <span class="c-last">MACKINTOSH</span>
+        <svg class="wave" viewBox="0 0 220 24"><line x1="0" y1="12" x2="82" y2="12" stroke="#b58c45" stroke-width="1"/><polyline points="82,12 88,12 91,6 94,18 97,3 100,21 103,7 106,16 109,9 112,14 115,11 118,12 138,12" fill="none" stroke="#d9b46a" stroke-width="1.4" stroke-linejoin="round"/><line x1="138" y1="12" x2="220" y2="12" stroke="#b58c45" stroke-width="1"/></svg>
+      </span>
+    </h1>
+    <div class="motto">FEEL IT. LIVE IT. BE IT.</div>
+    <div class="cta">
+      <a class="btn" href="#latest">Listen now</a>
+      <a class="btn ghost" id="heroTikTok" href="#tiktok">Follow on TikTok</a>
+    </div>
+  </div>
+</section>
+
+<section class="act" id="latest">
+  <div class="wrap">
+    <div class="feature">
+      <div class="sleeve">
+        <div class="record" aria-hidden="true"><span></span></div>
+        <img class="cover" src="images/when-im-with-you.jpg" alt="When I'm With You cover art: pink sunset over a mountain lake">
+      </div>
+      <div class="meta">
+        <div class="eyebrow">Latest release</div>
+        <h2>When I'm With You <em>(feat. Frank Ireri)</em></h2>
+        <div class="facts">
+          <div><b>Released</b>May 8, 2026</div>
+          <div><b>Length</b>2:18</div>
+          <div><b>Label</b>Mackintosh Industries</div>
+        </div>
+        <div class="btn-row" id="latestLinks"></div>
+        <div id="spotifySlot"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="act" id="tiktok">
+  <div class="wrap tiktok">
+    <div>
+      <div class="eyebrow">On TikTok</div>
+      <div class="handle">@jcmack83</div>
+      <p class="muted">New covers, song previews, and behind-the-scenes clips land on TikTok first. Follow to hear new music before it is released.</p>
+      <a class="btn" id="ttBtn" target="_blank" rel="noopener">Follow on TikTok</a>
+    </div>
+    <div id="ttSlot"></div>
+  </div>
+</section>
+
+<section class="act" id="videos">
+  <div class="wrap">
+    <div class="head-row"><div><div class="eyebrow">Watch</div><h2>Featured videos</h2></div></div>
+    <div class="videos" id="videoGrid"></div>
+  </div>
+</section>
+
+
+<section class="act" id="discography">
+  <div class="wrap">
+    <div class="head-row"><div><div class="eyebrow">Discography</div><h2>Releases</h2></div></div>
+    <div class="disc" id="disc"></div>
+  </div>
+</section>
+
+<section class="act" id="shows">
+  <div class="wrap">
+    <div class="head-row"><div><div class="eyebrow">Live</div><h2>Upcoming shows</h2></div></div>
+    <ul id="showList" hidden></ul>
+    <div class="empty" id="noShows">
+      <h3>No shows announced yet</h3>
+      <p>New dates are announced on TikTok and the mailing list first.</p>
+      <div class="btn-row" style="justify-content:center"><a class="btn ghost" href="#circle">Join the mailing list</a><a class="btn ghost" href="#contact">Book a performance</a></div>
+    </div>
+  </div>
+</section>
+
+<section class="act about" id="about">
+  <div class="wrap">
+    <div class="eyebrow">About</div>
+    <p class="lede">Classic sound, city lights, and songs written to be felt.</p>
+    <p>Jordan Mackintosh is a singer-songwriter releasing music through Mackintosh Industries. The catalog runs from "All of Me" to the reflective ballad "Autumn Leaves," the four-song release <em>Highs and Lows</em>, and the 2026 duet "When I'm With You" with Frank Ireri.</p>
+    <p class="muted">Draft bio. Replace with your own words.</p>
+  </div>
+</section>
+
+<section class="act" id="contact">
+  <div class="wrap">
+    <div class="head-row"><div><div class="eyebrow">Brands &amp; booking</div><h2>Work with Jordan</h2></div></div>
+    <div class="offers">
+      <div><h3>Brand partnerships</h3><p>Sponsored content, product integrations, and campaign appearances.</p></div>
+      <div><h3>Live bookings</h3><p>Private events, campus shows, galas, and venue performances.</p></div>
+      <div><h3>Sync licensing</h3><p>Original music for ads, film, podcasts, and social campaigns.</p></div>
+      <div><h3>Press &amp; interviews</h3><p>Features, podcasts, and press kit requests.</p></div>
+    </div>
+    <form class="big" id="inquiry" novalidate>
+      <div class="field"><label for="f-name">Your name</label><input id="f-name" name="name" required autocomplete="name"></div>
+      <div class="field"><label for="f-company">Company or brand</label><input id="f-company" name="company" autocomplete="organization"></div>
+      <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" required autocomplete="email"></div>
+      <div class="field"><label for="f-type">Inquiry type</label>
+        <select id="f-type" name="inquiry_type"><option>Brand partnership</option><option>Live booking</option><option>Sync licensing</option><option>Press or interview</option><option>Other</option></select>
+      </div>
+      <div class="field"><label for="f-date">Event or campaign date</label><input id="f-date" name="date" type="date"></div>
+      <div class="field"><label for="f-budget">Budget range</label>
+        <select id="f-budget" name="budget"><option>Not sure yet</option><option>Under $500</option><option>$500 to $2,000</option><option>$2,000 to $5,000</option><option>$5,000+</option></select>
+      </div>
+      <div class="field full"><label for="f-msg">Project details</label><textarea id="f-msg" name="message" required placeholder="Tell us about the brand, the audience, and what you have in mind."></textarea></div>
+      <input class="hp" id="f-hp" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="form-foot">
+        <p>Replies within 3 business days.</p>
+        <button class="btn" type="submit" id="inqBtn">Send inquiry</button>
+      </div>
+      <div class="status" id="inqStatus" hidden></div>
+    </form>
+  </div>
+</section>
+
+<section class="act circle center" id="circle">
+  <div class="wrap">
+    <div class="eyebrow">Mailing list</div>
+    <h2>Join the Inner Circle</h2>
+    <p class="muted">Early access to new releases and show announcements.</p>
+    <form id="signup" novalidate>
+      <input id="s-email" type="email" placeholder="Email address" aria-label="Email address" autocomplete="email">
+      <button class="btn" type="submit" id="sBtn">Join</button>
+    </form>
+    <div class="status" id="sStatus" hidden aria-live="polite"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <nav class="platform-links" id="footLinks" aria-label="Links"></nav>
+    <small>© 2026 Jordan Mackintosh · Mackintosh Industries · Feel it. Live it. Be it.</small>
+  </div>
+</footer>
+
+<script>
+/* ===== SITE SETTINGS: edit these ===== */
+const CONTACT_EMAIL = "jordanmackintosh2028@u.northwestern.edu";
+const TIKTOK = {handle:"jcmack83", url:"https://www.tiktok.com/@jcmack83"};
+const Q = encodeURIComponent("Jordan Mackintosh");
+const SPOTIFY_ARTIST_ID = "1YJr10fsZbQVSe9HrIn25J";
+// Replace a search link with the direct artist page link when you have it.
+const PLATFORMS = [
+  {name:"Spotify",       url:"https://open.spotify.com/artist/1YJr10fsZbQVSe9HrIn25J"},
+  {name:"Apple Music",   url:"https://music.apple.com/us/artist/jordan-mackintosh/1698893110"},
+  {name:"YouTube",       url:"https://www.youtube.com/@JordanMackintosh"},
+  {name:"YouTube Music", url:`https://music.youtube.com/search?q=${Q}`},
+  {name:"Amazon Music",  url:`https://music.amazon.com/search/${Q}`},
+  {name:"Deezer",        url:`https://www.deezer.com/search/${Q}/artist`},
+  {name:"TIDAL",         url:`https://listen.tidal.com/search?q=${Q}`},
+  {name:"Pandora",       url:`https://www.pandora.com/search/${Q}/artists`},
+  {name:"iHeartRadio",   url:`https://www.iheart.com/search/?q=${Q}`}
+];
+const VIDEOS = [
+  {id:"ihSj5ccvPRQ", title:"When I'm With You", kind:"Lyric video", poster:"images/when-im-with-you.jpg"},
+  {id:"cA9FL5IBqHk", title:"Highs and Lows", kind:"Preview", poster:"images/highs-and-lows-preview.jpg"}
+];
+// Add shows here when you have them, e.g. {month:"DEC", day:"05", title:"Winter Showcase", place:"Evanston, IL", url:"https://..."}
+const SHOWS = [];
+/* ===================================== */
+
+// The live site runs as its own page; this preview runs inside a frame that blocks embeds and outside requests.
+let LIVE=false; try{LIVE = window.self===window.top}catch(e){LIVE=false}
+const ext='target="_blank" rel="noopener"';
+const link=n=>PLATFORMS.find(p=>p.name===n).url;
+
+document.getElementById('footLinks').innerHTML=PLATFORMS.map(p=>`<a href="${p.url}" ${ext}>${p.name}</a>`).join('')+`<a href="${TIKTOK.url}" ${ext}>TikTok</a><a href="#contact">Booking</a>`;
+document.getElementById('latestLinks').innerHTML=`<a class="btn" href="${link('Spotify')}" ${ext}>Spotify</a><a class="btn ghost" href="${link('Apple Music')}" ${ext}>Apple Music</a><a class="btn ghost" href="https://www.youtube.com/watch?v=${VIDEOS[0].id}" ${ext}>Lyric video</a>`;
+document.getElementById('ttBtn').href=TIKTOK.url;
+
+// Spotify player plays in the page on the live site
+if(LIVE) document.getElementById('spotifySlot').innerHTML=`<iframe title="Jordan Mackintosh on Spotify" src="https://open.spotify.com/embed/artist/${SPOTIFY_ARTIST_ID}?utm_source=generator&theme=0" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
+
+// TikTok: live site shows TikTok's own profile embed; preview shows a link card
+const tt=document.getElementById('ttSlot');
+if(LIVE){
+  tt.innerHTML=`<div class="tt-embed"><blockquote class="tiktok-embed" cite="${TIKTOK.url}" data-unique-id="${TIKTOK.handle}" data-embed-type="creator" style="max-width:340px;min-width:288px;margin:0"><section><a target="_blank" href="${TIKTOK.url}">@${TIKTOK.handle}</a></section></blockquote></div>`;
+  const s=document.createElement('script');s.src='https://www.tiktok.com/embed.js';s.async=true;document.body.appendChild(s);
+}else{
+  tt.innerHTML=`<a class="phone" href="${TIKTOK.url}" ${ext} style="text-decoration:none"><img src="images/jm-logo.png" alt=""><span class="h">@${TIKTOK.handle}</span><span class="btn ghost">Watch on TikTok</span></a>`;
+}
+
+// Videos
+document.getElementById('videoGrid').innerHTML=VIDEOS.map(v=>{
+  const cap=`<div class="cap"><h3>${v.title}</h3><span>${v.kind}</span></div>`;
+  if(LIVE) return `<div class="video"><div class="frame"><iframe src="https://www.youtube-nocookie.com/embed/${v.id}?rel=0&modestbranding=1" title="${v.title} ${v.kind}" loading="lazy" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>${cap}</div>`;
+  return `<a class="video" href="https://www.youtube.com/watch?v=${v.id}" ${ext}><div class="frame"><img src="${v.poster}" alt=""><span class="play" aria-hidden="true"></span></div>${cap}</a>`;
+}).join('');
+
+// Shows
+if(SHOWS.length){
+  const ul=document.getElementById('showList');
+  ul.innerHTML=SHOWS.map(s=>`<li><b>${s.month} ${s.day}</b> · ${s.title} · ${s.place} ${s.url?`<a href="${s.url}" ${ext}>Tickets</a>`:''}</li>`).join('');
+  ul.hidden=false;document.getElementById('noShows').hidden=true;
+}
+
+// Discography
+const releases=[
+  {t:"When I'm With You",feat:"feat. Frank Ireri",type:"Single",date:"May 8, 2026",len:"2:18",img:"images/when-im-with-you.jpg"},
+  {t:"Highs and Lows",type:"Release",date:"April 25, 2025",img:"images/highs-and-lows.jpg",
+   tracks:[["Apart at the Seams","4:19"],["Light of My World","3:02"],["Tonight","3:59"],["Rocketman","4:31"]]},
+  {t:"Autumn Leaves",type:"Single",date:"May 31, 2024",len:"5:01",img:"images/autumn-leaves.jpg"},
+  {t:"All of Me",feat:"feat. Polaroid Social's",type:"Single",date:"July 31, 2023",len:"4:49",img:"images/all-of-me.jpg"}
+];
+document.getElementById('disc').innerHTML=releases.map(r=>`
+  <div class="rel">
+    <a href="${link('Spotify')}" ${ext}><img class="cover" src="${r.img}" alt="${r.t} cover art" loading="lazy"></a>
+    <h3>${r.t}</h3>
+    <small>${r.feat?r.feat+' · ':''}${r.type} · ${r.date}${r.len?' · '+r.len:''}</small>
+    ${r.tracks?`<ol>${r.tracks.map(([n,l])=>`<li>${n}<span>${l}</span></li>`).join('')}</ol>`:''}
+  </div>`).join('');
+
+const mb=document.getElementById('menuBtn'),nl=document.getElementById('navLinks');
+mb.addEventListener('click',()=>{const o=nl.classList.toggle('open');mb.setAttribute('aria-expanded',o)});
+nl.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{nl.classList.remove('open');mb.setAttribute('aria-expanded',false)}));
+
+// Email delivery through FormSubmit (formsubmit.co). The first live submission sends a one-time activation email to CONTACT_EMAIL.
+async function sendMail(data){
+  if(!LIVE) throw new Error('preview');
+  const r=await fetch(`https://formsubmit.co/ajax/${CONTACT_EMAIL}`,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok||j.success==='false'||j.success===false) throw new Error(j.message||'send failed');
+}
+const okEmail=s=>/^\S+@\S+\.\S+$/.test(s);
+function fallback(box,text){
+  box.innerHTML=`<strong>This preview cannot send email.</strong> On the live site this goes straight to the inbox. To send it now, copy the message and email it to <code>${CONTACT_EMAIL}</code>.<pre></pre><button class="btn ghost" type="button">Copy message</button>`;
+  box.querySelector('pre').textContent=text;
+  box.querySelector('button').onclick=async ev=>{
+    try{await navigator.clipboard.writeText(text);ev.target.textContent='Copied'}
+    catch{const r=document.createRange();r.selectNodeContents(box.querySelector('pre'));const s=getSelection();s.removeAllRanges();s.addRange(r);ev.target.textContent='Selected. Press copy.'}
+  };
+}
+document.getElementById('inquiry').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const v=id=>document.getElementById(id).value.trim();
+  const box=document.getElementById('inqStatus'),btn=document.getElementById('inqBtn');
+  box.hidden=false;
+  if(v('f-hp')) return;
+  if(!v('f-name')||!okEmail(v('f-email'))||!v('f-msg')){box.textContent='Add your name, a valid email, and project details, then send again.';return}
+  const data={_subject:`Website inquiry: ${v('f-type')} from ${v('f-name')}`,_template:'table',_captcha:'false',_replyto:v('f-email'),
+    name:v('f-name'),company:v('f-company')||'-',email:v('f-email'),inquiry_type:v('f-type'),date:v('f-date')||'Flexible',budget:v('f-budget'),message:v('f-msg')};
+  btn.disabled=true;btn.textContent='Sending';box.textContent='Sending your inquiry.';
+  try{await sendMail(data);box.innerHTML='<strong>Inquiry sent.</strong> Thank you. Expect a reply within 3 business days.';e.target.querySelectorAll('input,textarea').forEach(i=>i.value='')}
+  catch(err){fallback(box,`Inquiry: ${data.inquiry_type}\nFrom: ${data.name} (${data.company})\nEmail: ${data.email}\nDate: ${data.date}\nBudget: ${data.budget}\n\n${data.message}`)}
+  finally{btn.disabled=false;btn.textContent='Send inquiry'}
+});
+document.getElementById('signup').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const em=document.getElementById('s-email').value.trim(),box=document.getElementById('sStatus'),btn=document.getElementById('sBtn');
+  box.hidden=false;
+  if(!okEmail(em)){box.textContent='Enter a valid email address.';return}
+  btn.disabled=true;
+  try{await sendMail({_subject:'New Inner Circle signup',_captcha:'false',_template:'table',email:em});box.innerHTML='<strong>You are on the list.</strong> Watch your inbox for the next release.';document.getElementById('s-email').value=''}
+  catch(err){fallback(box,`Please add me to the Inner Circle mailing list: ${em}`)}
+  finally{btn.disabled=false}
+});
+
+// Skyline: generated towers with lit gold windows
+const cv=document.getElementById('skyline'),cx=cv.getContext('2d');
+let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+function draw(){
+  const r=cv.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);
+  cv.width=r.width*d;cv.height=r.height*d;cx.setTransform(d,0,0,d,0,0);seed=7;
+  const W=r.width,H=r.height;
+  const sky=cx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#0b0a08');sky.addColorStop(.7,'#1a150c');sky.addColorStop(1,'#2a200f');
+  cx.fillStyle=sky;cx.fillRect(0,0,W,H);
+  [[.45,'#120f0a',.35],[.6,'#0d0b08',.7]].forEach(([hMax,col,lit])=>{
+    let x=-10;
+    while(x<W){
+      const w=24+rnd()*60,h=H*(.12+rnd()*hMax*.7),y=H-h;
+      cx.fillStyle=col;cx.fillRect(x,y,w,h);
+      if(rnd()>.75){cx.fillRect(x+w/2-1,y-h*.12,2,h*.12)}
+      for(let wy=y+8;wy<H-6;wy+=9)for(let wx=x+5;wx<x+w-5;wx+=7){
+        if(rnd()<lit*.45){cx.fillStyle=`rgba(241,${190+rnd()*30|0},120,${.25+rnd()*.6})`;cx.fillRect(wx,wy,3,4)}
+      }
+      x+=w+2;
+    }
+  });
+}
+draw();addEventListener('resize',()=>{clearTimeout(window._t);window._t=setTimeout(draw,150)});
+</script>
+
+</body>
+</html>
