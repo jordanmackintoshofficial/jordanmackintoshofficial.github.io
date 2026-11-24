@@ -84,6 +84,7 @@ section.act{padding-block:clamp(64px,9vw,104px);border-bottom:1px solid var(--li
 .facts div{display:flex;flex-direction:column}
 .facts b{font-family:var(--f-mark);font-weight:400;font-size:.65rem;letter-spacing:.3em;color:var(--gold);text-transform:uppercase}
 .btn-row{display:flex;gap:10px;flex-wrap:wrap}
+#latest{overflow-x:clip}
 /* Latest release as a record sleeve with the vinyl sliding out */
 .sleeve{position:relative;width:min(340px,70vw);max-width:100%;margin-right:clamp(40px,9vw,110px);justify-self:center}
 .sleeve .cover{position:relative;z-index:1;image-rendering:auto}
@@ -140,7 +141,19 @@ a.video:hover .frame img{filter:brightness(.8) saturate(1);transform:scale(1.03)
 .phone{justify-self:center;width:min(300px,100%);aspect-ratio:9/16;border:1px solid var(--line);border-radius:28px;background:radial-gradient(ellipse at 50% 30%,rgba(201,164,92,.18),transparent 60%),var(--velvet);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center;position:relative;overflow:hidden}
 .phone img{width:44%;height:auto;opacity:.9}
 .phone .h{font-family:var(--f-mark);letter-spacing:.2em;font-size:.85rem;color:var(--ivory)}
-.tt-embed{justify-self:center;width:100%;max-width:340px;min-width:0}
+.tt-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:36px}
+.tt-head>div{min-width:0;max-width:52ch}
+/* Highlights wall: 4 across on desktop, swipeable row on phones */
+.tt-wall{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+.tt-card{position:relative;aspect-ratio:9/16;max-width:100%;background:var(--velvet);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.tt-card iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.tt-card a.tt-link{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-decoration:none;color:var(--ivory);background:radial-gradient(ellipse at 50% 35%,rgba(201,164,92,.16),transparent 65%)}
+.tt-card a.tt-link span{font-family:var(--f-mark);font-size:.68rem;letter-spacing:.24em;color:var(--gold)}
+@media (max-width:900px){.tt-wall{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:640px){
+  .tt-wall{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;padding-bottom:10px;margin-right:calc(-1*max(16px,env(safe-area-inset-right,0px)))}
+  .tt-card{flex:0 0 72%;scroll-snap-align:start}
+}
 
 /* Shows */
 .empty{border:1px solid var(--line);padding:clamp(28px,5vw,48px);text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
@@ -315,14 +328,16 @@ footer small{color:var(--smoke);font-size:.75rem;letter-spacing:.1em}
 
 
 <section class="act" id="tiktok">
-  <div class="wrap tiktok">
-    <div>
-      <div class="eyebrow">On TikTok</div>
-      <div class="handle">@jcmack83</div>
-      <p class="muted">New covers, song previews, and behind-the-scenes clips land on TikTok first. Follow to hear new music before it is released.</p>
+  <div class="wrap">
+    <div class="tt-head">
+      <div>
+        <div class="eyebrow">On TikTok</div>
+        <div class="handle">@jcmack83</div>
+        <p class="muted">New covers, song previews, and behind-the-scenes clips land on TikTok first. Follow to hear new music before it is released.</p>
+      </div>
       <a class="btn" id="ttBtn" target="_blank" rel="noopener">Follow on TikTok</a>
     </div>
-    <div id="ttSlot"></div>
+    <div class="tt-wall" id="ttWall"></div>
   </div>
 </section>
 
@@ -448,6 +463,8 @@ footer small{color:var(--smoke);font-size:.75rem;letter-spacing:.1em}
 /* ===== SITE SETTINGS: edit these ===== */
 const CONTACT_EMAIL = "jordanmackintosh2028@u.northwestern.edu";
 const TIKTOK = {handle:"jcmack83", url:"https://www.tiktok.com/@jcmack83"};
+// TikTok highlights wall: video IDs (the number at the end of each TikTok video link), in display order
+const TIKTOK_VIDEOS = ["7592071281462349087","7450329654545698078","7544495573567655199","7708448278072823054","7588591959145532703","7586844348717829407","7485957349945920798","7451499336355106079"];
 const Q = encodeURIComponent("Jordan Mackintosh");
 const SPOTIFY_ARTIST_ID = "1YJr10fsZbQVSe9HrIn25J";
 const APPLE_ARTIST_ID = "1698893110"; // used to load 30-second song previews
@@ -504,14 +521,14 @@ if(LIVE){
   showPlayer(pref);
 }
 
-// TikTok: live site shows TikTok's own profile embed; preview shows a link card
-const tt=document.getElementById('ttSlot');
-if(LIVE){
-  tt.innerHTML=`<div class="tt-embed"><blockquote class="tiktok-embed" cite="${TIKTOK.url}" data-unique-id="${TIKTOK.handle}" data-embed-type="creator" style="max-width:340px;min-width:288px;margin:0"><section><a target="_blank" href="${TIKTOK.url}">@${TIKTOK.handle}</a></section></blockquote></div>`;
-  const s=document.createElement('script');s.src='https://www.tiktok.com/embed.js';s.async=true;document.body.appendChild(s);
-}else{
-  tt.innerHTML=`<a class="phone" href="${TIKTOK.url}" ${ext} style="text-decoration:none"><img src="images/jm-logo.png" alt=""><span class="h">@${TIKTOK.handle}</span><span class="btn ghost">Watch on TikTok</span></a>`;
-}
+// TikTok highlights wall: each video plays in the page on the live site
+document.getElementById('ttWall').innerHTML=TIKTOK_VIDEOS.map((id,i)=>{
+  const url=`https://www.tiktok.com/@${TIKTOK.handle}/video/${id}`;
+  const inner=LIVE
+    ?`<iframe src="https://www.tiktok.com/player/v1/${id}?controls=1&progress_bar=1&play_button=1&volume_control=1&fullscreen_button=1&timestamp=0&music_info=1&description=0&rel=0&native_context_menu=0&closed_caption=0" title="TikTok video ${i+1} by @${TIKTOK.handle}" loading="lazy" allow="encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>`
+    :`<a class="tt-link" href="${url}" ${ext}><span class="play" aria-hidden="true" style="position:static;margin:0"></span><span>Watch on TikTok</span></a>`;
+  return `<div class="tt-card">${inner}</div>`;
+}).join('');
 
 // Videos
 document.getElementById('videoGrid').innerHTML=VIDEOS.map(v=>{
