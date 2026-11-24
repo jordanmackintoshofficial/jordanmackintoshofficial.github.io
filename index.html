@@ -13,6 +13,7 @@
 :root{
   --night:#0b0a08; --velvet:#14120e; --gold:#c9a45c; --gold-hi:#f1d99a; --ivory:#ece5d6; --smoke:#9b927f;
   --line:rgba(201,164,92,.28);
+  --veil-in:rgba(11,10,8,.55); --veil-out:rgba(11,10,8,.9);
   --f-mark:"Cinzel","Trajan Pro",Georgia,serif;
   --f-display:"Cormorant Garamond","Garamond",Georgia,serif;
   --f-body:"Jost","Futura","Helvetica Neue",Arial,sans-serif;
@@ -54,7 +55,7 @@ nav.links a:hover{opacity:1;color:var(--gold-hi)}
 /* Hero */
 .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
 #skyline{position:absolute;inset:0;width:100%;height:100%;display:block}
-.hero::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(11,10,8,.55),rgba(11,10,8,.9) 70%);pointer-events:none}
+.hero::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,var(--veil-in),var(--veil-out) 70%);pointer-events:none}
 .hero .wrap{position:relative;z-index:1;text-align:center;padding-block:clamp(48px,8vw,96px) clamp(48px,7vw,80px)}
 /* Crest: the JM logo rebuilt in live type so it stays sharp at any size */
 .crest{display:inline-flex;flex-direction:column;align-items:center;filter:drop-shadow(0 0 24px rgba(201,164,92,.22));--gg:linear-gradient(175deg,#f8e7b0 0%,#d9b46a 30%,#a7803b 55%,#e9cd86 75%,#b48a42 100%)}
@@ -94,7 +95,19 @@ section.act{padding-block:clamp(64px,9vw,104px);border-bottom:1px solid var(--li
 @keyframes spin{to{rotate:360deg}}
 .sleeve:hover .record,.sleeve.playing .record{animation-play-state:running}
 .feature .sleeve .cover::after{content:""}
-#spotifySlot iframe{width:100%;height:152px;border:0;border-radius:12px;display:block}
+/* Golden hour: warmer palette, set automatically from the visitor's local time */
+:root[data-sky="golden"]{--night:#100a06;--velvet:#1b120b;--gold:#d8a055;--gold-hi:#f8d496;--line:rgba(216,160,85,.3);--veil-in:rgba(16,10,6,.15);--veil-out:rgba(16,10,6,.82)}
+body{transition:background-color 1.2s ease}
+.sky-toggle{position:absolute;z-index:2;top:max(16px,env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));display:flex;align-items:center;gap:8px;background:rgba(11,10,8,.45);border:1px solid var(--line);color:var(--ivory);font-family:var(--f-body);font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;padding:8px 12px;cursor:pointer;backdrop-filter:blur(6px)}
+.sky-toggle:hover{border-color:var(--gold-hi);color:var(--gold-hi)}
+.sky-toggle svg{width:14px;height:14px}
+/* Player switch */
+.player-tabs{display:flex;gap:0;border:1px solid var(--line);width:max-content;max-width:100%}
+.player-tabs button{background:none;border:0;color:var(--smoke);font-family:var(--f-mark);font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;padding:9px 16px;cursor:pointer}
+.player-tabs button[aria-selected="true"]{background:var(--gold);color:var(--night)}
+.player-frame{margin-top:12px}
+.player-frame iframe{width:100%;border:0;border-radius:12px;display:block;background:var(--velvet)}
+#spotifySlot:empty{display:none}
 /* Brand offerings */
 .offers{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:40px}
 .offers div{background:var(--night);padding:28px 24px;display:flex;flex-direction:column;gap:8px}
@@ -245,6 +258,7 @@ footer small{color:var(--smoke);font-size:.75rem;letter-spacing:.1em}
 
 <section class="hero" id="home">
   <canvas id="skyline" aria-hidden="true"></canvas>
+  <button class="sky-toggle" id="skyToggle" type="button" aria-label="Switch sky"></button>
   <div class="wrap">
     <h1 style="margin:0;font-weight:inherit" aria-label="Jordan Mackintosh">
       <span class="crest" aria-hidden="true">
@@ -468,11 +482,27 @@ const ext='target="_blank" rel="noopener"';
 const link=n=>PLATFORMS.find(p=>p.name===n).url;
 
 document.getElementById('footLinks').innerHTML=PLATFORMS.map(p=>`<a href="${p.url}" ${ext}>${p.name}</a>`).join('')+`<a href="${TIKTOK.url}" ${ext}>TikTok</a><a href="#contact">Booking</a>`;
-document.getElementById('latestLinks').innerHTML=`<a class="btn" href="${link('Spotify')}" ${ext}>Spotify</a><a class="btn ghost" href="${link('Apple Music')}" ${ext}>Apple Music</a><a class="btn ghost" href="https://www.youtube.com/watch?v=${VIDEOS[0].id}" ${ext}>Lyric video</a>`;
+// On the live site the player switch replaces the separate Spotify and Apple Music buttons
+document.getElementById('latestLinks').innerHTML=(LIVE?'':`<a class="btn" href="${link('Spotify')}" ${ext}>Spotify</a><a class="btn ghost" href="${link('Apple Music')}" ${ext}>Apple Music</a>`)+`<a class="btn ghost" href="https://www.youtube.com/watch?v=${VIDEOS[0].id}" ${ext}>Watch the lyric video</a>`;
 document.getElementById('ttBtn').href=TIKTOK.url;
 
 // Spotify player plays in the page on the live site
-if(LIVE) document.getElementById('spotifySlot').innerHTML=`<iframe title="Jordan Mackintosh on Spotify" src="https://open.spotify.com/embed/artist/${SPOTIFY_ARTIST_ID}?utm_source=generator&theme=0" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
+// Spotify and Apple Music players with a switch between them (live site only)
+let appleEmbed=`https://embed.music.apple.com/us/artist/jordan-mackintosh/${APPLE_ARTIST_ID}`; // replaced by the newest release once Apple's catalog loads
+function showPlayer(which){
+  const f=document.getElementById('playerFrame');if(!f)return;
+  document.querySelectorAll('.player-tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.p===which));
+  f.innerHTML=which==='apple'
+    ?`<iframe title="Jordan Mackintosh on Apple Music" src="${appleEmbed}" height="175" loading="lazy" allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation"></iframe>`
+    :`<iframe title="Jordan Mackintosh on Spotify" src="https://open.spotify.com/embed/artist/${SPOTIFY_ARTIST_ID}?utm_source=generator&theme=0" height="152" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
+  try{localStorage.setItem('jm-player',which)}catch(e){}
+}
+if(LIVE){
+  document.getElementById('spotifySlot').innerHTML=`<div class="player-tabs" role="tablist" aria-label="Choose a player"><button type="button" role="tab" data-p="spotify">Spotify</button><button type="button" role="tab" data-p="apple">Apple Music</button></div><div class="player-frame" id="playerFrame" role="tabpanel"></div>`;
+  document.querySelectorAll('.player-tabs button').forEach(b=>b.onclick=()=>showPlayer(b.dataset.p));
+  let pref='spotify';try{pref=localStorage.getItem('jm-player')||'spotify'}catch(e){}
+  showPlayer(pref);
+}
 
 // TikTok: live site shows TikTok's own profile embed; preview shows a link card
 const tt=document.getElementById('ttSlot');
@@ -578,6 +608,10 @@ window.__itunes=d=>{
   let any=false;
   document.querySelectorAll('[data-track]').forEach(el=>{if(PREVIEWS[norm(el.dataset.track)]){el.classList.add('ready');if(el.classList.contains('trk'))el.tabIndex=0;any=true}});
   document.getElementById('previewNote').hidden=!any;
+  // Point the Apple Music player at the newest release
+  const latest=(d&&d.results||[]).filter(r=>r.wrapperType==='track'&&r.collectionId).sort((a,b)=>new Date(b.releaseDate)-new Date(a.releaseDate))[0];
+  if(latest){appleEmbed=`https://embed.music.apple.com/us/album/${latest.collectionId}`;
+    const sel=document.querySelector('.player-tabs button[aria-selected="true"]');if(sel&&sel.dataset.p==='apple')showPlayer('apple')}
 };
 if(LIVE){const sc=document.createElement('script');sc.src=`https://itunes.apple.com/lookup?id=${APPLE_ARTIST_ID}&entity=song&limit=200&country=us&callback=__itunes`;sc.async=true;document.body.appendChild(sc)}
 
@@ -674,9 +708,30 @@ function build(){
     return {col,par,blds,wins};
   });
 }
+/* ---------- Night and golden-hour skies ---------- */
+// Approximate local sunset hour for each month (mid-latitude US, daylight saving included).
+const SUNSET=[16.9,17.5,18.2,19.4,20.1,20.5,20.5,20.0,19.2,18.3,16.7,16.4];
+function autoSky(){const n=new Date(),h=n.getHours()+n.getMinutes()/60,ss=SUNSET[n.getMonth()];return (h>=ss-1.5&&h<ss+.4)?'golden':'night'}
+let skyMode=autoSky(),skyMix=skyMode==='golden'?1:0,skyManual=false;
+const SKY_ICON={golden:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="14" r="4"/><path d="M3 18h18M12 4v3M5 8l2 2M19 8l-2 2"/></svg>Golden hour',
+  night:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg>Night'};
+function setSky(m){
+  skyMode=m;document.documentElement.dataset.sky=m;
+  const b=document.getElementById('skyToggle');b.innerHTML=SKY_ICON[m];b.setAttribute('aria-label',`Sky: ${m==='golden'?'golden hour':'night'}. Switch`);
+  if(reduceMotion){skyMix=m==='golden'?1:0;paint()}else if(!skyRAF&&heroVisible)skyRAF=requestAnimationFrame(skyLoop);
+}
+const lerp=(a,b,t)=>a+(b-a)*t;
+const mixC=(c1,c2,t)=>`rgb(${c1.map((v,i)=>Math.round(lerp(v,c2[i],t))).join(',')})`;
 function paint(){
-  const sky=cx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#0b0a08');sky.addColorStop(.7,'#1a150c');sky.addColorStop(1,'#2a200f');
+  skyMix+=((skyMode==='golden'?1:0)-skyMix)*(reduceMotion?1:.04);
+  const k=skyMix,sky=cx.createLinearGradient(0,0,0,H);
+  sky.addColorStop(0,mixC([11,10,8],[38,20,22],k));sky.addColorStop(.55,mixC([20,16,10],[120,56,34],k));sky.addColorStop(.85,mixC([26,21,12],[214,118,52],k));sky.addColorStop(1,mixC([42,32,15],[246,176,92],k));
   cx.fillStyle=sky;cx.fillRect(0,0,W,H);
+  if(k>.01){ // low sun behind the skyline
+    const sx=W*.72,syy=H*.8,rg=cx.createRadialGradient(sx,syy,0,sx,syy,H*.9);
+    rg.addColorStop(0,`rgba(255,214,140,${.85*k})`);rg.addColorStop(.08,`rgba(255,180,96,${.55*k})`);rg.addColorStop(.4,`rgba(230,120,60,${.18*k})`);rg.addColorStop(1,'rgba(230,120,60,0)');
+    cx.fillStyle=rg;cx.fillRect(0,0,W,H);
+  }
   const sy=Math.min(scrollY,H);
   if(glow>.01){const rg=cx.createRadialGradient(mx,my,0,mx,my,220);rg.addColorStop(0,`rgba(201,164,92,${.12*glow})`);rg.addColorStop(1,'rgba(201,164,92,0)');cx.fillStyle=rg;cx.fillRect(0,0,W,H)}
   layers.forEach(L=>{
@@ -687,13 +742,14 @@ function paint(){
       const yy=y+off,dx=x-mx,dy=yy-my,dist=Math.sqrt(dx*dx+dy*dy);
       const near=glow*Math.max(0,1-dist/150);
       const tw=reduceMotion?0:Math.sin(tick*.02+ph)*.08;
-      const al=Math.min(1,a+tw+near*.9);
+      const al=Math.min(1,a*(1-.65*skyMix)+tw+near*.9);
       if(al>.03){cx.fillStyle=`rgba(241,${g+near*25|0},${120+near*60|0},${al})`;cx.fillRect(x,yy,3,4)}
     });
   });
 }
 function skyLoop(){
   if(!(mx<0))glow+=(1-glow)*.08;else glow*=.9;
+  if(Math.abs((skyMode==='golden'?1:0)-skyMix)<.002)skyMix=skyMode==='golden'?1:0;
   if(!waveRAF)tick++;
   paint();
   skyRAF=heroVisible&&!reduceMotion?requestAnimationFrame(skyLoop):0;
@@ -708,6 +764,9 @@ new IntersectionObserver(([en])=>{
   if(heroVisible)startWaves();
 }).observe(hero);
 if(reduceMotion)waveCanvases.forEach((c,i)=>drawWave(c,i===1));
+setSky(skyMode);
+document.getElementById('skyToggle').addEventListener('click',()=>{skyManual=true;setSky(skyMode==='golden'?'night':'golden')});
+setInterval(()=>{if(!skyManual&&autoSky()!==skyMode)setSky(autoSky())},60000);
 
 /* ---------- Release countdown ---------- */
 (function(){
