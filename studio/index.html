@@ -149,6 +149,7 @@ kbd{border:1px solid var(--line);padding:1px 6px;font-family:var(--f-body);font-
               <label><input type="checkbox" value="minimal" checked> Minimal</label>
             </div>
           </div>
+          <div class="field full"><label style="font-family:var(--f-body);letter-spacing:0;text-transform:none;font-size:.9rem;color:var(--ivory);display:flex;gap:8px;align-items:center"><input type="checkbox" id="beatOn" checked> Move to the beat (lyrics, waveform, lights and rings pulse with the music)</label></div>
           <div class="field"><label for="sky">Skyline sky</label><select id="sky"><option value="golden">Golden hour</option><option value="night">Night</option><option value="mix">Alternate</option></select></div>
           <div class="field"><label for="hook">Opening text (first 3 seconds, optional)</label><input type="text" id="hook" maxlength="60" placeholder="wait for the chorus"></div>
           <div class="field"><label for="handle">Handle shown on clips</label><input type="text" id="handle" value="@jcmack83" maxlength="30"></div>
@@ -232,9 +233,9 @@ $('loadBtn').addEventListener('click',async()=>{
     // restore saved timing for this song when the lyrics match
     const saved=store.get('jm-studio:'+norm(title));
     S.lines=texts.map((t,i)=>({text:t,t:saved&&saved.lines&&saved.lines[i]&&saved.lines[i].text===t?saved.lines[i].t:null}));
-    computeEnergy();renderLines();drawEnergy();
+    computeEnergy();analyzeBeats();renderLines();drawEnergy();
     const synced=S.lines.filter(l=>l.t!=null).length;
-    st.textContent=`Loaded ${fmt(buf.duration)} · ${texts.length} lyric lines`+(synced?` · saved timing restored for ${synced} lines`:'');st.classList.add('ok');
+    st.textContent=`Loaded ${fmt(buf.duration)} · about ${S.bpm} BPM · ${texts.length} lyric lines`+(synced?` · saved timing restored for ${synced} lines`:'');st.classList.add('ok');
     $('tapBtn').disabled=!texts.length;$('tapNow').textContent=texts.length?'Ready when you are':'Add lyrics to sync them';
     $('findBtn').disabled=false;$('exportSync').disabled=false;
   }catch(e){st.textContent='That file could not be read. Try an MP3 or WAV.';st.classList.add('bad')}
@@ -290,6 +291,36 @@ $('importSync').addEventListener('change',async e=>{
     saveTiming();renderLines();drawEnergy();$('syncStatus').textContent='Timing file opened.';$('tapBtn').disabled=!S.buffer;
   }catch(err){$('syncStatus').textContent='That timing file could not be read.'}
 });
+
+/* ================= Beat detection ================= */
+// Finds the tempo and every beat from the bass, so the visuals can move in time with the music.
+function analyzeBeats(){
+  const sr=S.buffer.sampleRate,m=S.mono,hop=512,a=Math.exp(-2*Math.PI*150/sr);
+  const n=Math.floor(m.length/hop),env=new Float32Array(n);let lp=0;
+  for(let i=0,k=0;k<n;k++){let e=0;for(let j=0;j<hop;j++,i++){lp=a*lp+(1-a)*m[i];e+=lp*lp}env[k]=Math.log(1e-6+e)}
+  // onset strength: rises in bass energy above the recent average
+  const on=new Float32Array(n),w=Math.round(.5*sr/hop);let acc=0;
+  for(let k=1;k<n;k++){const d=Math.max(0,env[k]-env[k-1]);on[k]=d}
+  const mean=new Float32Array(n);for(let k=0;k<n;k++){acc+=on[k];if(k>=w)acc-=on[k-w];mean[k]=acc/Math.min(k+1,w)}
+  for(let k=0;k<n;k++)on[k]=Math.max(0,on[k]-mean[k]*1.1);
+  // tempo by autocorrelation, 70 to 180 BPM, gently favouring about 110 BPM
+  const fps=sr/hop,minL=Math.floor(fps*60/180),maxL=Math.ceil(fps*60/70);let best=0,bestL=Math.round(fps*.5);
+  for(let L=minL;L<=maxL;L++){let c=0;for(let k=L;k<n;k++)c+=on[k]*on[k-L];const bpm=60*fps/L,wgt=Math.exp(-Math.pow(Math.log2(bpm/110),2)*1.2);if(c*wgt>best){best=c*wgt;bestL=L}}
+  // phase: where the beat grid lines up with the strongest hits
+  let bestOff=0,bestSum=-1;for(let o=0;o<bestL;o++){let sum=0;for(let k=o;k<n;k+=bestL)sum+=on[k];if(sum>bestSum){bestSum=sum;bestOff=o}}
+  const period=bestL/fps,beats=[],str=[];let maxS=1e-6;
+  for(let k=bestOff;k<n;k+=bestL){let s2=0;for(let j=Math.max(0,k-2);j<=Math.min(n-1,k+2);j++)s2=Math.max(s2,on[j]);beats.push(k/fps);str.push(s2);maxS=Math.max(maxS,s2)}
+  // beat strength follows how hard the music hits there, so quiet parts pulse less
+  const sorted=[...str].sort((x,y)=>x-y),ref=sorted[Math.floor(sorted.length*.9)]||maxS;
+  S.beats=beats;S.beatStr=str.map(v=>.35+.65*Math.min(1,v/ref));S.bpm=Math.round(60/period);
+}
+// 1 right on a beat, fading to 0 before the next one
+function beatPulse(t){
+  const b=S.beats;if(!b||!b.length)return 0;let lo=0,hi=b.length-1;if(t<b[0])return 0;
+  while(lo<hi){const mid=(lo+hi+1)>>1;if(b[mid]<=t)lo=mid;else hi=mid-1}
+  return S.beatStr[lo]*Math.exp(-(t-b[lo])*6.5);
+}
+function beatIndex(t){const b=S.beats;if(!b)return 0;let i=0;while(i<b.length&&b[i]<=t)i++;return i}
 
 /* ================= Step 3: find the best moments ================= */
 function computeEnergy(){
@@ -382,49 +413,60 @@ function skylineLayers(W,H){
   return skylineCache[key]=layers;
 }
 const mix=(a,b,k)=>`rgb(${a.map((v,i)=>Math.round(v+(b[i]-v)*k)).join(',')})`;
-function drawSkyline(g,W,H,t,golden,level){
+function drawSkyline(g,W,H,t,golden,level,pulse){
   const k=golden?1:0,sky=g.createLinearGradient(0,0,0,H);
   sky.addColorStop(0,mix([11,10,8],[38,20,22],k));sky.addColorStop(.5,mix([20,16,10],[120,56,34],k));sky.addColorStop(.8,mix([26,21,12],[214,118,52],k));sky.addColorStop(1,mix([42,32,15],[246,176,92],k));
   g.fillStyle=sky;g.fillRect(0,0,W,H);
-  if(golden){const sx=W*.68,sy=H*.86,rg=g.createRadialGradient(sx,sy,0,sx,sy,H*.7);rg.addColorStop(0,'rgba(255,214,140,.9)');rg.addColorStop(.07,'rgba(255,180,96,.55)');rg.addColorStop(.4,'rgba(230,120,60,.16)');rg.addColorStop(1,'rgba(230,120,60,0)');g.fillStyle=rg;g.fillRect(0,0,W,H)}
+  if(golden){const sx=W*.68,sy=H*.86,rg=g.createRadialGradient(sx,sy,0,sx,sy,H*(.7+.08*pulse));rg.addColorStop(0,'rgba(255,214,140,.9)');rg.addColorStop(.07,'rgba(255,180,96,.55)');rg.addColorStop(.4,'rgba(230,120,60,.16)');rg.addColorStop(1,'rgba(230,120,60,0)');g.fillStyle=rg;g.fillRect(0,0,W,H)}
   const layers=skylineLayers(W,H),drift=t*W*.004;
   layers.forEach((L,li)=>{
     const dx=-(drift*(li+1)*.6)%W; // slow sideways drift for depth
-    g.save();g.translate(dx,0);
+    const bounce=-pulse*H*.006*(li+1); // nearer buildings jump more on the beat
+    g.save();g.translate(dx,bounce);
     for(const rep of [0,W]){g.save();g.translate(rep,0);
       g.fillStyle=mix(L.n,L.g,k);L.shapes.forEach(s=>g.fillRect(s[0],s[1],s[2],s[3]));
-      g.globalAlpha=golden?.35:1;
-      L.wins.forEach(([x,y,w,h,a,cool])=>{g.fillStyle=cool?`rgba(214,224,240,${a})`:`rgba(255,${205+(level*30|0)},${130+(level*40|0)},${Math.min(1,a+level*.25)})`;g.fillRect(x,y,w,h)});
+      g.globalAlpha=Math.min(1,(golden?.35:1)+pulse*.45);
+      L.wins.forEach(([x,y,w,h,a,cool])=>{g.fillStyle=cool?`rgba(214,224,240,${a})`:`rgba(255,${205+(level*30|0)},${130+(level*40|0)},${Math.min(1,a+level*.25+pulse*.35)})`;g.fillRect(x,y,w,h)});
       g.globalAlpha=1;
-      L.beacons.forEach(([x,y,ph])=>{const on=Math.sin(t*2.7+ph)>.55;g.fillStyle=`rgba(255,60,50,${on?.95:.15})`;g.beginPath();g.arc(x,y,W*.003,0,6.29);g.fill()});
+      L.beacons.forEach(([x,y,ph],bi)=>{const on=pulse>.45&&(beatIndex(skyT)+bi)%2===0;g.fillStyle=`rgba(255,60,50,${on?.95:.15})`;g.beginPath();g.arc(x,y,W*.003,0,6.29);g.fill()});
       g.restore()}
     g.restore();
   });
 }
-function drawCoverBg(g,W,H,t,level){
+function drawCoverBg(g,W,H,t,level,pulse){
   g.fillStyle='#0b0a08';g.fillRect(0,0,W,H);
-  if(S.coverBlur){g.globalAlpha=.85;g.drawImage(S.coverBlur,0,0,W,H);g.globalAlpha=1}
-  g.fillStyle='rgba(11,10,8,.45)';g.fillRect(0,0,W,H);
-  if(S.cover){const sz=W*.62*(1+.03*Math.sin(t*.5))*(1+level*.015),x=(W-sz)/2,y=H*.14;
+  if(S.coverBlur){const z=1+pulse*.04;g.globalAlpha=.85;g.drawImage(S.coverBlur,W*(1-z)/2,H*(1-z)/2,W*z,H*z);g.globalAlpha=1}
+  g.fillStyle=`rgba(11,10,8,${.45-pulse*.15})`;g.fillRect(0,0,W,H);
+  if(S.cover){const base=W*.62*(1+.03*Math.sin(t*.5)),sz=base*(1+pulse*.045),x=(W-sz)/2,y=H*.14+(base-sz)/2;
     g.save();g.shadowColor='rgba(0,0,0,.6)';g.shadowBlur=W*.06;g.shadowOffsetY=W*.02;g.drawImage(S.cover,x,y,sz,sz);g.restore();
     g.strokeStyle='rgba(201,164,92,.5)';g.lineWidth=2;g.strokeRect(x,y,sz,sz)}
 }
-function drawVinyl(g,W,H,t,level){
+function drawVinyl(g,W,H,t,level,pulse){
   g.fillStyle='#0b0a08';g.fillRect(0,0,W,H);
-  const cx=W/2,cy=H*.33,R=W*.38*(1+level*.02);
-  const glow=g.createRadialGradient(cx,cy,R*.4,cx,cy,R*1.9);glow.addColorStop(0,'rgba(201,164,92,.22)');glow.addColorStop(1,'rgba(201,164,92,0)');g.fillStyle=glow;g.fillRect(0,0,W,H);
+  const cx=W/2,cy=H*.33,R=W*.38*(1+pulse*.035);
+  drawRings(g,cx,cy,R,W,H);
+  const glow=g.createRadialGradient(cx,cy,R*.4,cx,cy,R*(1.9+pulse*.4));glow.addColorStop(0,`rgba(201,164,92,${.22+pulse*.25})`);glow.addColorStop(1,'rgba(201,164,92,0)');g.fillStyle=glow;g.fillRect(0,0,W,H);
   g.save();g.translate(cx,cy);g.rotate(t*Math.PI*2*(33.3/60));
   g.fillStyle='#0d0c0a';g.beginPath();g.arc(0,0,R,0,6.29);g.fill();
   g.strokeStyle='rgba(255,255,255,.05)';g.lineWidth=1;for(let r=R*.38;r<R*.98;r+=R*.018){g.beginPath();g.arc(0,0,r,0,6.29);g.stroke()}
   const sh=g.createLinearGradient(-R,-R,R,R);sh.addColorStop(.3,'rgba(255,255,255,0)');sh.addColorStop(.5,'rgba(255,255,255,.07)');sh.addColorStop(.7,'rgba(255,255,255,0)');g.fillStyle=sh;g.beginPath();g.arc(0,0,R,0,6.29);g.fill();
   if(S.cover){g.save();g.beginPath();g.arc(0,0,R*.34,0,6.29);g.clip();g.drawImage(S.cover,-R*.34,-R*.34,R*.68,R*.68);g.restore()}
   g.fillStyle='#0b0a08';g.beginPath();g.arc(0,0,R*.025,0,6.29);g.fill();
-  g.strokeStyle='rgba(201,164,92,.6)';g.lineWidth=2;g.beginPath();g.arc(0,0,R,0,6.29);g.stroke();
+  g.strokeStyle=`rgba(241,217,154,${.6+pulse*.4})`;g.lineWidth=2+pulse*5;g.beginPath();g.arc(0,0,R,0,6.29);g.stroke();
   g.restore();
 }
-function drawMinimalBg(g,W,H,t,level){
+// Gold rings that ripple out from the centre on each beat
+let ringT=0,skyT=0;
+function drawRings(g,cx,cy,R,W,H){
+  const b=S.beats;if(!b)return;const t=ringT;
+  for(let i=b.length-1;i>=0;i--){const dt=t-b[i];if(dt<0)continue;if(dt>1.4)break;
+    const k=dt/1.4,str=S.beatStr[i];g.strokeStyle=`rgba(241,217,154,${(1-k)*.45*str})`;g.lineWidth=(1-k)*6*W/1080;
+    g.beginPath();g.arc(cx,cy,R*(1+k*1.1),0,6.29);g.stroke()}
+}
+function drawMinimalBg(g,W,H,t,level,pulse){
   g.fillStyle='#0b0a08';g.fillRect(0,0,W,H);
-  const rg=g.createRadialGradient(W/2,H*.45,0,W/2,H*.45,H*.6);rg.addColorStop(0,`rgba(201,164,92,${.08+level*.06})`);rg.addColorStop(1,'rgba(201,164,92,0)');g.fillStyle=rg;g.fillRect(0,0,W,H);
+  drawRings(g,W/2,H*.45,W*.32,W,H);
+  const rg=g.createRadialGradient(W/2,H*.45,0,W/2,H*.45,H*(.6+pulse*.1));rg.addColorStop(0,`rgba(201,164,92,${.08+level*.06+pulse*.14})`);rg.addColorStop(1,'rgba(201,164,92,0)');g.fillStyle=rg;g.fillRect(0,0,W,H);
 }
 // Loudness bars around time t, straight from the audio samples
 function levels(t,n){
@@ -433,15 +475,17 @@ function levels(t,n){
   return out;
 }
 function levelAt(t){const v=levels(t,4);return (v[1]+v[2])/2}
-function drawWaveform(g,W,H,y,t,widthFrac){
-  const n=56,v=levels(t,n),bw=W*widthFrac/n,x0=(W-W*widthFrac)/2,maxH=H*.05;
+function drawWaveform(g,W,H,y,t,widthFrac,pulse=0){
+  const n=56,v=levels(t,n),bw=W*widthFrac/n,x0=(W-W*widthFrac)/2,maxH=H*(.05+pulse*.035);
   const grad=g.createLinearGradient(x0,0,x0+W*widthFrac,0);grad.addColorStop(0,'rgba(181,140,69,.4)');grad.addColorStop(.5,'#f1d99a');grad.addColorStop(1,'rgba(181,140,69,.4)');
   g.fillStyle=grad;
-  v.forEach((a,i)=>{const env=Math.sin(Math.PI*(i+.5)/n),h=Math.max(2,a*env*maxH);g.fillRect(x0+i*bw+bw*.2,y-h/2,bw*.6,h)});
+  if(pulse>.05){g.save();g.shadowColor='rgba(241,217,154,.9)';g.shadowBlur=pulse*W*.02}
+  v.forEach((a,i)=>{const env=Math.sin(Math.PI*(i+.5)/n),h=Math.max(2,(a+pulse*.35)*env*maxH);g.fillRect(x0+i*bw+bw*.2,y-h/2,bw*.6,h)});
+  if(pulse>.05)g.restore();
 }
 function wrap(g,text,maxW){const words=text.split(/\s+/),rows=[];let cur='';
   words.forEach(w=>{const tryS=cur?cur+' '+w:w;if(g.measureText(tryS).width>maxW&&cur){rows.push(cur);cur=w}else cur=tryS});if(cur)rows.push(cur);return rows}
-function drawLyrics(g,W,H,t,yCenter,size){
+function drawLyrics(g,W,H,t,yCenter,size,pulse=0){
   const i=lineAt(t);if(i<0)return;
   const l=S.lines[i],next=S.lines.slice(i+1).find(x=>x.t!=null);
   const lineEnd=next?Math.min(next.t,l.t+7):l.t+5;
@@ -451,11 +495,13 @@ function drawLyrics(g,W,H,t,yCenter,size){
   g.font=`600 ${size}px "Cormorant Garamond", Georgia, serif`;g.textAlign='center';g.textBaseline='middle';
   const rows=wrap(g,l.text,W*.84),lh=size*1.12,y0=yCenter-(rows.length-1)*lh/2+(1-inA)*size*.35;
   const widths=rows.map(r=>g.measureText(r).width),total=widths.reduce((a,b)=>a+b,0);let fill=p*total;
-  g.save();g.globalAlpha=alpha;g.shadowColor='rgba(0,0,0,.55)';g.shadowBlur=size*.25;
+  g.save();g.globalAlpha=alpha;
+  const pop=1+pulse*.045;g.translate(W/2,yCenter);g.scale(pop,pop);g.translate(-W/2,-yCenter); // lyrics pop on the beat
+  g.shadowColor='rgba(0,0,0,.55)';g.shadowBlur=size*.25;
   rows.forEach((r,k)=>{const y=y0+k*lh,w=widths[k],x=W/2;
     g.fillStyle='rgba(236,229,214,.5)';g.fillText(r,x,y);
     const f=Math.max(0,Math.min(w,fill));fill-=w;
-    if(f>0){g.save();g.beginPath();g.rect(x-w/2,y-lh/2,f,lh);g.clip();g.shadowBlur=0;g.fillStyle='#f1d99a';g.fillText(r,x,y);g.restore()}
+    if(f>0){g.save();g.beginPath();g.rect(x-w/2,y-lh/2,f,lh);g.clip();g.shadowColor='rgba(241,217,154,.85)';g.shadowBlur=pulse*size*.35;g.fillStyle='#f1d99a';g.fillText(r,x,y);g.restore()}
   });
   g.restore();
   if(next){g.save();g.globalAlpha=.32*alpha;g.font=`italic 500 ${size*.6}px "Cormorant Garamond", Georgia, serif`;g.fillStyle='#ece5d6';
@@ -467,11 +513,11 @@ function spaced(g,text,x,y,spacing){ // letter-spaced text, centred
 }
 // One frame of a clip. tc = seconds since the clip started.
 function drawFrame(g,W,H,clip,tc,opts){
-  const t=clip.start+tc,level=levelAt(t),u=W/1080;
-  if(clip.style==='skyline')drawSkyline(g,W,H,tc,clip.sky!=='night',level);
-  else if(clip.style==='cover')drawCoverBg(g,W,H,tc,level);
-  else if(clip.style==='vinyl')drawVinyl(g,W,H,tc,level);
-  else drawMinimalBg(g,W,H,tc,level);
+  const t=clip.start+tc,level=levelAt(t),u=W/1080,pulse=opts.beat===false?0:beatPulse(t);ringT=t;skyT=t;
+  if(clip.style==='skyline')drawSkyline(g,W,H,tc,clip.sky!=='night',level,pulse);
+  else if(clip.style==='cover')drawCoverBg(g,W,H,tc,level,pulse);
+  else if(clip.style==='vinyl')drawVinyl(g,W,H,tc,level,pulse);
+  else drawMinimalBg(g,W,H,tc,level,pulse);
   // readable band behind the lyrics
   if(clip.style==='skyline'){const band=g.createLinearGradient(0,H*.18,0,H*.62);band.addColorStop(0,'rgba(11,10,8,0)');band.addColorStop(.5,'rgba(11,10,8,.55)');band.addColorStop(1,'rgba(11,10,8,0)');g.fillStyle=band;g.fillRect(0,H*.18,W,H*.44)}
   // brand at the top
@@ -480,9 +526,11 @@ function drawFrame(g,W,H,clip,tc,opts){
   // lyrics and waveform, placed by look (kept clear of TikTok's buttons at the bottom and right)
   const lyrY={skyline:H*.4,cover:H*.6,vinyl:H*.62,minimal:H*.45}[clip.style];
   const hasLyrics=S.lines.some(l=>l.t!=null);
-  if(hasLyrics)drawLyrics(g,W,H,t,lyrY,(clip.style==='minimal'?92:78)*u);
+  if(hasLyrics)drawLyrics(g,W,H,t,lyrY,(clip.style==='minimal'?92:78)*u,pulse);
   else{g.font=`600 ${96*u}px "Cormorant Garamond", Georgia, serif`;g.fillStyle='#f1d99a';g.fillText(S.title,W/2,lyrY)}
-  drawWaveform(g,W,H,{skyline:H*.54,cover:H*.73,vinyl:H*.74,minimal:H*.6}[clip.style],t,.62);
+  drawWaveform(g,W,H,{skyline:H*.54,cover:H*.73,vinyl:H*.74,minimal:H*.6}[clip.style],t,.62,pulse);
+  // the star beside the brand flashes on every beat
+  g.save();g.fillStyle=`rgba(241,217,154,${.35+pulse*.65})`;const sx=W/2+300*u,sy=H*.075,sr=(9+pulse*9)*u;g.beginPath();g.moveTo(sx,sy-sr);g.lineTo(sx+sr*.22,sy-sr*.22);g.lineTo(sx+sr,sy);g.lineTo(sx+sr*.22,sy+sr*.22);g.lineTo(sx,sy+sr);g.lineTo(sx-sr*.22,sy+sr*.22);g.lineTo(sx-sr,sy);g.lineTo(sx-sr*.22,sy-sr*.22);g.closePath();g.fill();g.restore();
   // handle under the waveform
   g.font=`400 ${30*u}px Jost, sans-serif`;g.fillStyle='rgba(236,229,214,.75)';spaced(g,opts.handle,W/2,H*.79,3*u);
   // opening text
@@ -499,7 +547,7 @@ function drawFrame(g,W,H,clip,tc,opts){
   // fade in from black
   if(tc<.35){g.fillStyle=`rgba(0,0,0,${1-tc/.35})`;g.fillRect(0,0,W,H)}
 }
-function opts(){return {hook:$('hook').value.trim(),handle:$('handle').value.trim(),endcard:$('endcard').value.trim()||'Out now on all platforms'}}
+function opts(){return {beat:$('beatOn').checked,hook:$('hook').value.trim(),handle:$('handle').value.trim(),endcard:$('endcard').value.trim()||'Out now on all platforms'}}
 
 /* ================= Preview ================= */
 const pv=$('preview'),pg=pv.getContext('2d');let pvSrc=null,pvRAF=0,pvClip=null,pvT0=0;
