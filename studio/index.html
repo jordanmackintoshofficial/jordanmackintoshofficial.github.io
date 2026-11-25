@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Clip Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Jost:wght@300;400;500&display=swap">
+<script src="mp4-muxer.js"></script>
+<style>
+/* Layout: a working tool in four numbered steps (the order matters), with a live phone-sized preview pinned on the right. */
+:root{
+  --night:#0b0a08; --velvet:#14120e; --panel:#18150f; --gold:#c9a45c; --gold-hi:#f1d99a; --ivory:#ece5d6; --smoke:#9b927f;
+  --line:rgba(201,164,92,.28); --ok:#8fbf7a; --warn:#e0a458;
+  --f-mark:"Cinzel",Georgia,serif; --f-display:"Cormorant Garamond",Georgia,serif; --f-body:"Jost","Helvetica Neue",Arial,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--night);color:var(--ivory);font-family:var(--f-body);font-weight:300;font-size:15px;line-height:1.55}
+a{color:var(--gold-hi)}
+:focus-visible{outline:2px solid var(--gold-hi);outline-offset:2px}
+header{border-bottom:1px solid var(--line)}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-block:16px;flex-wrap:wrap}
+.brand{font-family:var(--f-mark);letter-spacing:.3em;color:var(--gold-hi);font-weight:600}
+.brand small{display:block;font-family:var(--f-body);letter-spacing:.2em;font-size:.65rem;color:var(--smoke);font-weight:400;margin-top:2px}
+.notice{font-size:.82rem;color:var(--smoke)}
+.notice.bad{color:var(--warn)}
+main .wrap{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:28px;padding-block:28px 80px;align-items:start}
+@media (max-width:980px){main .wrap{grid-template-columns:1fr}}
+.steps{display:flex;flex-direction:column;gap:20px;min-width:0}
+.step{background:var(--panel);border:1px solid var(--line);padding:22px}
+.step h2{font-family:var(--f-display);font-weight:600;font-size:1.6rem;margin:0 0 4px;display:flex;align-items:baseline;gap:12px}
+.step h2 span{font-family:var(--f-mark);font-size:.7rem;letter-spacing:.3em;color:var(--gold);font-weight:400}
+.step>p.hint{margin:0 0 16px;color:var(--smoke);font-size:.88rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field.full{grid-column:1/-1}
+label,.lbl{font-family:var(--f-mark);font-size:.64rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}
+input[type=text],input[type=number],select,textarea{font:inherit;font-weight:400;color:var(--ivory);background:var(--night);border:1px solid var(--line);padding:10px 12px;width:100%;border-radius:0}
+input[type=file]{font:inherit;color:var(--smoke);font-size:.85rem;max-width:100%}
+textarea{min-height:190px;resize:vertical;line-height:1.5}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold-hi)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5em;font-family:var(--f-mark);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;padding:.85em 1.3em;border:1px solid var(--gold);color:var(--night);background:linear-gradient(135deg,var(--gold-hi),var(--gold));cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.ghost{background:transparent;color:var(--gold-hi)}
+.btn.small{padding:.5em .8em;font-size:.62rem}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.status{font-size:.85rem;color:var(--smoke);min-height:1.3em}
+.status.ok{color:var(--ok)} .status.bad{color:var(--warn)}
+.covers{display:flex;gap:10px;flex-wrap:wrap}
+.covers button{padding:0;border:2px solid transparent;background:none;cursor:pointer;width:64px;height:64px}
+.covers button[aria-pressed="true"]{border-color:var(--gold-hi)}
+.covers img{width:100%;height:100%;object-fit:cover;display:block}
+/* Sync */
+.tapzone{border:1px dashed var(--line);padding:22px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+.tapzone .now{font-family:var(--f-display);font-size:1.7rem;font-weight:600;min-height:1.3em;color:var(--gold-hi);text-wrap:balance}
+.tapzone .next{color:var(--smoke);min-height:1.3em}
+.tapbtn{width:min(320px,100%);padding:22px;font-size:.85rem}
+.lines{max-height:320px;overflow:auto;border:1px solid var(--line);margin-top:14px}
+.lines table{width:100%;border-collapse:collapse;font-size:.88rem}
+.lines td{padding:6px 10px;border-bottom:1px solid rgba(201,164,92,.12);vertical-align:middle}
+.lines td.t{width:86px;font-variant-numeric:tabular-nums;color:var(--gold-hi)}
+.lines td.c{width:160px;white-space:nowrap;text-align:right}
+.lines tr.cur td{background:rgba(201,164,92,.1)}
+.lines td.c button{background:none;border:1px solid var(--line);color:var(--ivory);font:inherit;font-size:.75rem;padding:2px 7px;cursor:pointer}
+.lines td.c button:hover{border-color:var(--gold-hi)}
+/* Clips */
+#energy{width:100%;height:90px;display:block;background:var(--night);border:1px solid var(--line);cursor:pointer}
+.checks{display:flex;gap:14px;flex-wrap:wrap}
+.checks label{font-family:var(--f-body);letter-spacing:0;text-transform:none;font-size:.9rem;color:var(--ivory);display:flex;gap:6px;align-items:center}
+.clips{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.clip{display:grid;grid-template-columns:28px minmax(0,1fr) 150px 140px auto;gap:10px;align-items:center;border:1px solid var(--line);padding:10px 12px;background:var(--night)}
+@media (max-width:640px){.clip{grid-template-columns:28px minmax(0,1fr)}.clip>*:nth-child(n+3){grid-column:2}}
+.clip .n{font-family:var(--f-display);font-size:1.3rem;color:var(--gold)}
+.clip .lyr{font-size:.85rem;color:var(--smoke);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clip .lyr b{color:var(--ivory);font-weight:400;font-variant-numeric:tabular-nums}
+.clip .done a{font-size:.8rem}
+.prog{height:3px;background:var(--line);margin-top:6px;grid-column:1/-1}
+.prog i{display:block;height:100%;width:0;background:var(--gold-hi)}
+/* Preview */
+aside{position:sticky;top:16px;display:flex;flex-direction:column;gap:12px}
+@media (max-width:980px){aside{position:static}}
+.phone{width:100%;max-width:360px;aspect-ratio:9/16;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:#000}
+.phone canvas{width:100%;height:100%;display:block}
+aside .cap{font-size:.8rem;color:var(--smoke)}
+kbd{border:1px solid var(--line);padding:1px 6px;font-family:var(--f-body);font-size:.8rem}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand">CLIP STUDIO<small>Jordan Mackintosh · private tool</small></div>
+    <div class="notice" id="support">Checking your browser…</div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="steps">
+
+      <section class="step" id="s1">
+        <h2><span>Step 1</span>Song</h2>
+        <p class="hint">Choose the song file and paste the lyrics, one line per row. Lines in brackets, like [Chorus], are skipped. Your files stay on this computer.</p>
+        <div class="grid2">
+          <div class="field"><label for="audioFile">Song file (MP3, WAV or M4A)</label><input type="file" id="audioFile" accept="audio/*"></div>
+          <div class="field"><label for="title">Song title</label><input type="text" id="title" placeholder="When I'm With You"></div>
+          <div class="field full"><span class="lbl">Cover art</span>
+            <div class="covers" id="covers"></div>
+            <input type="file" id="coverFile" accept="image/*" aria-label="Upload a different cover">
+          </div>
+          <div class="field full"><label for="lyrics">Lyrics</label><textarea id="lyrics" placeholder="Paste the lyrics here, one line per row"></textarea></div>
+        </div>
+        <div class="row" style="margin-top:14px"><button class="btn" id="loadBtn" type="button">Load song</button><span class="status" id="loadStatus"></span></div>
+      </section>
+
+      <section class="step" id="s2">
+        <h2><span>Step 2</span>Sync the lyrics</h2>
+        <p class="hint">Press Start, then tap the button or press <kbd>Space</kbd> right as each line begins. You only do this once per song. The timing saves automatically on this computer.</p>
+        <div class="tapzone">
+          <div class="next" id="tapPrev"></div>
+          <div class="now" id="tapNow">Load a song first</div>
+          <button class="btn tapbtn" id="tapBtn" type="button" disabled>Start syncing</button>
+          <div class="row"><button class="btn ghost small" id="stopSync" type="button" disabled>Stop</button><span class="status" id="syncStatus"></span></div>
+        </div>
+        <div class="lines" id="linesBox" hidden><table><tbody id="linesBody"></tbody></table></div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn ghost small" id="exportSync" type="button" disabled>Save timing file</button>
+          <label class="btn ghost small" for="importSync" style="font-family:var(--f-mark);font-size:.62rem;letter-spacing:.2em;color:var(--gold-hi)">Open timing file</label>
+          <input type="file" id="importSync" accept="application/json" hidden>
+        </div>
+      </section>
+
+      <section class="step" id="s3">
+        <h2><span>Step 3</span>Pick the clips</h2>
+        <p class="hint">The studio finds the most energetic parts of the song, usually the chorus, and starts each clip at the beginning of a lyric line. Click the graph to add a clip at that point.</p>
+        <canvas id="energy" width="1200" height="180" aria-label="Song energy graph. Click to add a clip."></canvas>
+        <div class="grid2" style="margin-top:14px">
+          <div class="field"><label for="count">Number of clips</label><select id="count"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>8</option></select></div>
+          <div class="field"><label for="len">Clip length</label><select id="len"><option value="15">15 seconds</option><option value="20">20 seconds</option><option value="30" selected>30 seconds</option><option value="45">45 seconds</option><option value="60">60 seconds</option></select></div>
+          <div class="field full"><span class="lbl">Looks (clips rotate through the ones you tick)</span>
+            <div class="checks" id="styles">
+              <label><input type="checkbox" value="skyline" checked> City skyline</label>
+              <label><input type="checkbox" value="cover" checked> Cover art</label>
+              <label><input type="checkbox" value="vinyl" checked> Spinning vinyl</label>
+              <label><input type="checkbox" value="minimal" checked> Minimal</label>
+            </div>
+          </div>
+          <div class="field"><label for="sky">Skyline sky</label><select id="sky"><option value="golden">Golden hour</option><option value="night">Night</option><option value="mix">Alternate</option></select></div>
+          <div class="field"><label for="hook">Opening text (first 3 seconds, optional)</label><input type="text" id="hook" maxlength="60" placeholder="wait for the chorus"></div>
+          <div class="field"><label for="handle">Handle shown on clips</label><input type="text" id="handle" value="@jcmack83" maxlength="30"></div>
+          <div class="field"><label for="endcard">End card text</label><input type="text" id="endcard" value="Out now on all platforms" maxlength="40"></div>
+        </div>
+        <div class="row" style="margin-top:14px"><button class="btn" id="findBtn" type="button" disabled>Find the best moments</button><span class="status" id="findStatus"></span></div>
+        <div class="clips" id="clips"></div>
+      </section>
+
+      <section class="step" id="s4">
+        <h2><span>Step 4</span>Make the videos</h2>
+        <p class="hint">Each clip is saved as a vertical 1080 × 1920 MP4, ready for TikTok, Instagram Reels and YouTube Shorts. Rendering runs faster than real time; keep this tab open until it finishes.</p>
+        <div class="row"><button class="btn" id="renderAll" type="button" disabled>Make all clips</button><button class="btn ghost" id="dlAll" type="button" hidden>Download all</button><span class="status" id="renderStatus"></span></div>
+      </section>
+    </div>
+
+    <aside>
+      <div class="phone"><canvas id="preview" width="540" height="960"></canvas></div>
+      <div class="row"><button class="btn ghost small" id="pvStop" type="button" disabled>Stop preview</button></div>
+      <div class="cap" id="pvCap">Preview appears here. Press Preview on any clip.</div>
+    </aside>
+  </div>
+</main>
+
+<script>
+/* ================= State ================= */
+const $=id=>document.getElementById(id);
+const S={buffer:null,mono:null,audioURL:null,title:'',lines:[],cover:null,coverBlur:null,energy:null,clips:[],outputs:[]};
+const COVERS=[["When I'm With You","../images/when-im-with-you.jpg"],["Highs and Lows","../images/highs-and-lows.jpg"],["Autumn Leaves","../images/autumn-leaves.jpg"],["All of Me","../images/all-of-me.jpg"]];
+const STYLE_NAMES={skyline:'City skyline',cover:'Cover art',vinyl:'Spinning vinyl',minimal:'Minimal'};
+const fmt=t=>{t=Math.max(0,t);const m=Math.floor(t/60),s=(t%60);return `${m}:${s<10?'0':''}${s.toFixed(1)}`};
+const norm=t=>String(t).toLowerCase().replace(/[^a-z0-9]/g,'');
+const store={get(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let actx=null;const AC=()=>actx||(actx=new (window.AudioContext||window.webkitAudioContext)());
+
+/* ================= Browser support ================= */
+let AUDIO_CODEC='aac',VIDEO_CODEC='avc1.640028';
+(async()=>{
+  const el=$('support');
+  if(!('VideoEncoder' in window)||!('AudioEncoder' in window)||typeof Mp4Muxer==='undefined'){el.textContent='This browser cannot make videos. Use Chrome or Edge on a computer.';el.classList.add('bad');return}
+  try{
+    let v=await VideoEncoder.isConfigSupported({codec:VIDEO_CODEC,width:1080,height:1920,bitrate:8e6,framerate:30});
+    if(!v.supported){VIDEO_CODEC='avc1.4d0028';v=await VideoEncoder.isConfigSupported({codec:VIDEO_CODEC,width:1080,height:1920,bitrate:8e6,framerate:30})}
+    const a=await AudioEncoder.isConfigSupported({codec:'mp4a.40.2',sampleRate:48000,numberOfChannels:2,bitrate:192000});
+    if(!a.supported)AUDIO_CODEC='opus';
+    if(!v.supported){el.textContent='This browser cannot encode MP4 video. Use Chrome or Edge on Windows or Mac.';el.classList.add('bad');return}
+    el.textContent=AUDIO_CODEC==='aac'?'Ready. Videos render in this browser.':'Ready, but this browser lacks AAC audio. Chrome or Edge on Windows or Mac gives the most compatible files.';
+    if(AUDIO_CODEC!=='aac')el.classList.add('bad');
+  }catch(e){el.textContent='Could not check video support: '+e.message;el.classList.add('bad')}
+})();
+
+/* ================= Step 1: song ================= */
+function loadImage(src){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src})}
+async function setCover(src){
+  S.cover=await loadImage(src);
+  // Blurred, enlarged copy for backgrounds (made once)
+  const c=document.createElement('canvas');c.width=540;c.height=960;const g=c.getContext('2d');
+  g.filter='blur(28px) saturate(1.15)';const sc=Math.max(c.width/S.cover.width,c.height/S.cover.height)*1.25;
+  g.drawImage(S.cover,(c.width-S.cover.width*sc)/2,(c.height-S.cover.height*sc)/2,S.cover.width*sc,S.cover.height*sc);
+  S.coverBlur=c;drawIdle();
+}
+$('covers').innerHTML=COVERS.map(([n,src],i)=>`<button type="button" data-src="${src}" aria-pressed="${i===0}" title="${n}"><img src="${src}" alt="${n} cover"></button>`).join('');
+$('covers').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('covers').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));setCover(b.dataset.src)});
+$('coverFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;$('covers').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',false));setCover(URL.createObjectURL(f))});
+setCover(COVERS[0][1]).catch(()=>{});
+
+function parseLyrics(text){return text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l&&!/^\[.*\]$/.test(l))}
+$('loadBtn').addEventListener('click',async()=>{
+  const f=$('audioFile').files[0],st=$('loadStatus');st.className='status';
+  if(!f){st.textContent='Choose a song file first.';st.classList.add('bad');return}
+  const title=$('title').value.trim()||f.name.replace(/\.[^.]+$/,'');$('title').value=title;
+  const texts=parseLyrics($('lyrics').value);
+  st.textContent='Reading the song…';
+  try{
+    const buf=await AC().decodeAudioData(await f.arrayBuffer());
+    S.buffer=buf;S.title=title;
+    if(S.audioURL)URL.revokeObjectURL(S.audioURL);S.audioURL=URL.createObjectURL(f);syncAudio.src=S.audioURL;
+    // mono copy for analysis and the waveform
+    const m=new Float32Array(buf.length);for(let c=0;c<buf.numberOfChannels;c++){const d=buf.getChannelData(c);for(let i=0;i<d.length;i++)m[i]+=d[i]/buf.numberOfChannels}
+    S.mono=m;
+    // restore saved timing for this song when the lyrics match
+    const saved=store.get('jm-studio:'+norm(title));
+    S.lines=texts.map((t,i)=>({text:t,t:saved&&saved.lines&&saved.lines[i]&&saved.lines[i].text===t?saved.lines[i].t:null}));
+    computeEnergy();renderLines();drawEnergy();
+    const synced=S.lines.filter(l=>l.t!=null).length;
+    st.textContent=`Loaded ${fmt(buf.duration)} · ${texts.length} lyric lines`+(synced?` · saved timing restored for ${synced} lines`:'');st.classList.add('ok');
+    $('tapBtn').disabled=!texts.length;$('tapNow').textContent=texts.length?'Ready when you are':'Add lyrics to sync them';
+    $('findBtn').disabled=false;$('exportSync').disabled=false;
+  }catch(e){st.textContent='That file could not be read. Try an MP3 or WAV.';st.classList.add('bad')}
+});
+
+/* ================= Step 2: tap-along sync ================= */
+const syncAudio=new Audio();
+const TAP_DELAY=0.12; // people tap slightly late; this pulls each time earlier
+let syncing=false,syncIdx=0;
+function saveTiming(){store.set('jm-studio:'+norm(S.title),{title:S.title,lines:S.lines})}
+function renderLines(){
+  $('linesBox').hidden=!S.lines.length;
+  $('linesBody').innerHTML=S.lines.map((l,i)=>`<tr data-i="${i}"><td class="t">${l.t==null?'–':fmt(l.t)}</td><td>${l.text.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</td><td class="c"><button type="button" data-a="-" aria-label="Earlier">−0.1</button> <button type="button" data-a="+" aria-label="Later">+0.1</button> <button type="button" data-a="p" aria-label="Play from this line">▶</button></td></tr>`).join('');
+}
+$('linesBody').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;const i=+b.closest('tr').dataset.i,l=S.lines[i];
+  if(b.dataset.a==='p'){stopPreview();syncAudio.currentTime=Math.max(0,(l.t??0)-1);syncAudio.play();return}
+  if(l.t==null)return;l.t=Math.max(0,l.t+(b.dataset.a==='+'?.1:-.1));saveTiming();renderLines();drawEnergy();
+});
+function updateTapText(){
+  $('tapPrev').textContent=syncIdx>0?S.lines[syncIdx-1].text:'';
+  $('tapNow').textContent=syncIdx<S.lines.length?S.lines[syncIdx].text:'All lines synced';
+}
+function tap(){
+  if(!syncing){ // start
+    stopPreview();syncing=true;syncIdx=0;S.lines.forEach(l=>l.t=null);
+    syncAudio.currentTime=0;syncAudio.play();$('tapBtn').textContent='Tap at each line';$('stopSync').disabled=false;$('syncStatus').textContent='';
+    $('tapPrev').textContent='Get ready. First line:';$('tapNow').textContent=S.lines[0].text;return;
+  }
+  if(syncIdx>=S.lines.length)return;
+  S.lines[syncIdx].t=Math.max(0,syncAudio.currentTime-TAP_DELAY);syncIdx++;updateTapText();renderLines();
+  const row=$('linesBody').children[syncIdx-1];if(row){row.classList.add('cur');row.scrollIntoView({block:'nearest'})}
+  if(syncIdx>=S.lines.length)finishSync();
+}
+function finishSync(){
+  syncing=false;$('tapBtn').textContent='Sync again';$('stopSync').disabled=true;syncAudio.pause();
+  saveTiming();drawEnergy();
+  const n=S.lines.filter(l=>l.t!=null).length;$('syncStatus').textContent=`${n} of ${S.lines.length} lines timed and saved.`;
+}
+$('tapBtn').addEventListener('click',tap);
+$('stopSync').addEventListener('click',finishSync);
+syncAudio.addEventListener('ended',()=>{if(syncing)finishSync()});
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&syncing&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();tap()}});
+$('exportSync').addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify({title:S.title,lines:S.lines},null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${S.title||'song'} timing.json`;a.click();
+});
+$('importSync').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{const d=JSON.parse(await f.text());if(!Array.isArray(d.lines))throw 0;
+    S.lines=d.lines.map(l=>({text:String(l.text),t:typeof l.t==='number'?l.t:null}));
+    $('lyrics').value=S.lines.map(l=>l.text).join('\n');if(d.title){$('title').value=d.title;S.title=d.title}
+    saveTiming();renderLines();drawEnergy();$('syncStatus').textContent='Timing file opened.';$('tapBtn').disabled=!S.buffer;
+  }catch(err){$('syncStatus').textContent='That timing file could not be read.'}
+});
+
+/* ================= Step 3: find the best moments ================= */
+function computeEnergy(){
+  const sr=S.buffer.sampleRate,hop=Math.floor(sr/4),m=S.mono,out=[]; // 4 values per second
+  for(let i=0;i+hop<=m.length;i+=hop){let s=0;for(let j=i;j<i+hop;j+=4)s+=m[j]*m[j];out.push(Math.sqrt(s/(hop/4)))}
+  const max=Math.max(...out,1e-6);S.energy=out.map(v=>v/max);
+}
+function drawEnergy(){
+  const c=$('energy'),g=c.getContext('2d'),W=c.width,H=c.height;g.clearRect(0,0,W,H);if(!S.energy)return;
+  const e=S.energy,dur=S.buffer.duration;
+  S.clips.forEach((cl,i)=>{const x0=cl.start/dur*W,x1=(cl.start+cl.len)/dur*W;g.fillStyle='rgba(201,164,92,.18)';g.fillRect(x0,0,x1-x0,H);g.fillStyle='#f1d99a';g.font='600 22px Jost, sans-serif';g.fillText(String(i+1),x0+6,24)});
+  g.fillStyle='#c9a45c';const bw=W/e.length;
+  e.forEach((v,i)=>{const h=Math.max(1,v*(H-36));g.fillRect(i*bw,H-h,Math.max(1,bw-.5),h)});
+  g.fillStyle='rgba(236,229,214,.5)';S.lines.forEach(l=>{if(l.t!=null)g.fillRect(l.t/dur*W,H-8,2,8)});
+}
+function lineStartNear(t,back=5,fwd=1.5){
+  let best=null;S.lines.forEach(l=>{if(l.t!=null&&l.t>=t-back&&l.t<=t+fwd&&(best==null||Math.abs(l.t-t)<Math.abs(best-t)))best=l.t});
+  return best==null?t:Math.max(0,best-.35);
+}
+function pickStyles(){return [...$('styles').querySelectorAll('input:checked')].map(i=>i.value)}
+function findMoments(){
+  const L=+$('len').value,N=+$('count').value,e=S.energy,dur=S.buffer.duration,step=4;
+  if(dur<L+1){$('findStatus').textContent='The song is shorter than the clip length.';return}
+  // smoothed loudness score for every possible start (every 0.25 s)
+  const win=L*step,pre=[0];e.forEach(v=>pre.push(pre[pre.length-1]+v));
+  const cands=[];for(let i=0;i+win<=e.length;i++){cands.push({s:i/step,score:(pre[i+win]-pre[i])/win})}
+  cands.sort((a,b)=>b.score-a.score);
+  const chosen=[];
+  for(const c of cands){if(chosen.length>=N)break;if(chosen.every(x=>Math.abs(x.s-c.s)>=L*.6))chosen.push(c)}
+  // if the song is too short for N separate moments, allow more overlap
+  for(const c of cands){if(chosen.length>=N)break;if(chosen.every(x=>Math.abs(x.s-c.s)>=L*.3))chosen.push(c)}
+  chosen.sort((a,b)=>a.s-b.s);
+  const styles=pickStyles();if(!styles.length){$('findStatus').textContent='Tick at least one look.';return}
+  const skyPref=$('sky').value;
+  S.clips=chosen.map((c,i)=>({start:Math.min(dur-L,lineStartNear(c.s)),len:L,style:styles[i%styles.length],sky:skyPref==='mix'?(i%2?'night':'golden'):skyPref}));
+  renderClips();drawEnergy();
+  const synced=S.lines.some(l=>l.t!=null);
+  $('findStatus').textContent=`${S.clips.length} clips ready.`+(synced?'':' Sync the lyrics in step 2 to show lyrics and start clips on a line.');
+}
+$('findBtn').addEventListener('click',findMoments);
+$('energy').addEventListener('click',e=>{
+  if(!S.buffer)return;const r=e.target.getBoundingClientRect(),L=+$('len').value;
+  const t=(e.clientX-r.left)/r.width*S.buffer.duration;const styles=pickStyles();
+  S.clips.push({start:Math.min(S.buffer.duration-L,Math.max(0,lineStartNear(t,3,3))),len:L,style:styles[S.clips.length%Math.max(1,styles.length)]||'minimal',sky:$('sky').value==='night'?'night':'golden'});
+  S.clips.sort((a,b)=>a.start-b.start);renderClips();drawEnergy();
+});
+function lineAt(t){let idx=-1;S.lines.forEach((l,i)=>{if(l.t!=null&&l.t<=t+.05)idx=i});return idx}
+function renderClips(){
+  $('clips').innerHTML=S.clips.map((c,i)=>{
+    const li=lineAt(c.start+.4),txt=li>=0?S.lines[li].text:'(no lyrics synced yet)';
+    return `<div class="clip" data-i="${i}">
+      <span class="n">${i+1}</span>
+      <div class="lyr"><b>${fmt(c.start)}–${fmt(c.start+c.len)}</b> · <span></span></div>
+      <select data-k="style" aria-label="Look for clip ${i+1}">${Object.entries(STYLE_NAMES).map(([k,v])=>`<option value="${k}"${k===c.style?' selected':''}>${v}</option>`).join('')}</select>
+      <select data-k="sky" aria-label="Sky for clip ${i+1}"${c.style!=='skyline'?' disabled':''}><option value="golden"${c.sky==='golden'?' selected':''}>Golden hour</option><option value="night"${c.sky==='night'?' selected':''}>Night</option></select>
+      <div class="row"><button class="btn ghost small" data-a="pv" type="button">Preview</button><button class="btn ghost small" data-a="del" type="button" aria-label="Remove clip ${i+1}">✕</button><span class="done"></span></div>
+      <div class="prog"><i></i></div>
+    </div>`}).join('');
+  [...$('clips').children].forEach((el,i)=>{const li=lineAt(S.clips[i].start+.4);el.querySelector('.lyr span').textContent=li>=0?S.lines[li].text:'No lyrics synced yet'});
+  $('renderAll').disabled=!S.clips.length;
+}
+$('clips').addEventListener('change',e=>{const s=e.target.closest('select');if(!s)return;const i=+s.closest('.clip').dataset.i;S.clips[i][s.dataset.k]=s.value;if(s.dataset.k==='style')renderClips()});
+$('clips').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const i=+b.closest('.clip').dataset.i;
+  if(b.dataset.a==='del'){S.clips.splice(i,1);renderClips();drawEnergy()}
+  if(b.dataset.a==='pv')startPreview(i)});
+
+/* ================= Drawing the video frames ================= */
+const BRAND={name:'JORDAN MACKINTOSH'};
+let rng=1;const rand=()=>(rng=(rng*16807)%2147483647)/2147483647;
+const skylineCache={};
+function skylineLayers(W,H){
+  const key=W+'x'+H;if(skylineCache[key])return skylineCache[key];
+  rng=11;const defs=[{par:0,n:[36,30,24],g:[92,48,30],maxH:.42,minW:.03,maxW:.08,floor:.009,lit:.22},{par:0,n:[22,18,14],g:[46,25,16],maxH:.36,minW:.05,maxW:.13,floor:.012,lit:.3},{par:0,n:[11,9,7],g:[14,9,6],maxH:.2,minW:.08,maxW:.2,floor:.015,lit:.35}];
+  const layers=defs.map(L=>{
+    const shapes=[],wins=[],beacons=[];let x=-20;
+    while(x<W+20){
+      const w=W*(L.minW+rand()*(L.maxW-L.minW)),cen=Math.exp(-Math.pow((x/W-.5)/.35,2));
+      let h=H*L.maxH*(.3+.7*rand())*(.55+.45*cen),top=H,tx=x,tw=w;const fl=H*L.floor,col=fl*.8;
+      const tiers=h>H*.18&&rand()<.6?1+Math.floor(rand()*2):0;let rem=h;
+      for(let t=0;t<=tiers;t++){const th=t===tiers?rem:rem*(.55+rand()*.2);shapes.push([tx,top-th,tw,th]);
+        const b=L.lit*(.4+rand()*1.4);
+        for(let fy=top-th+fl*.8;fy<top-fl*.6;fy+=fl){const band=rand()<.22?2.2:rand()<.5?.9:.25;
+          for(let fx=tx+col*.7;fx<tx+tw-col*1.2;fx+=col){if(rand()<b*band)wins.push([fx,fy,col*.45,fl*.45,.35+rand()*.6,rand()<.14])}}
+        top-=th;rem-=th;if(t<tiers){const ins=tw*(.1+rand()*.15);tx+=ins;tw-=ins*2}}
+      if(h>H*.25&&rand()<.4){const ah=h*.15;shapes.push([tx+tw/2-1.5,top-ah,3,ah]);beacons.push([tx+tw/2,top-ah,rand()*6.28])}
+      x+=w+2;
+    }
+    return {...L,shapes,wins,beacons};
+  });
+  return skylineCache[key]=layers;
+}
+const mix=(a,b,k)=>`rgb(${a.map((v,i)=>Math.round(v+(b[i]-v)*k)).join(',')})`;
+function drawSkyline(g,W,H,t,golden,level){
+  const k=golden?1:0,sky=g.createLinearGradient(0,0,0,H);
+  sky.addColorStop(0,mix([11,10,8],[38,20,22],k));sky.addColorStop(.5,mix([20,16,10],[120,56,34],k));sky.addColorStop(.8,mix([26,21,12],[214,118,52],k));sky.addColorStop(1,mix([42,32,15],[246,176,92],k));
+  g.fillStyle=sky;g.fillRect(0,0,W,H);
+  if(golden){const sx=W*.68,sy=H*.86,rg=g.createRadialGradient(sx,sy,0,sx,sy,H*.7);rg.addColorStop(0,'rgba(255,214,140,.9)');rg.addColorStop(.07,'rgba(255,180,96,.55)');rg.addColorStop(.4,'rgba(230,120,60,.16)');rg.addColorStop(1,'rgba(230,120,60,0)');g.fillStyle=rg;g.fillRect(0,0,W,H)}
+  const layers=skylineLayers(W,H),drift=t*W*.004;
+  layers.forEach((L,li)=>{
+    const dx=-(drift*(li+1)*.6)%W; // slow sideways drift for depth
+    g.save();g.translate(dx,0);
+    for(const rep of [0,W]){g.save();g.translate(rep,0);
+      g.fillStyle=mix(L.n,L.g,k);L.shapes.forEach(s=>g.fillRect(s[0],s[1],s[2],s[3]));
+      g.globalAlpha=golden?.35:1;
+      L.wins.forEach(([x,y,w,h,a,cool])=>{g.fillStyle=cool?`rgba(214,224,240,${a})`:`rgba(255,${205+(level*30|0)},${130+(level*40|0)},${Math.min(1,a+level*.25)})`;g.fillRect(x,y,w,h)});
+      g.globalAlpha=1;
+      L.beacons.forEach(([x,y,ph])=>{const on=Math.sin(t*2.7+ph)>.55;g.fillStyle=`rgba(255,60,50,${on?.95:.15})`;g.beginPath();g.arc(x,y,W*.003,0,6.29);g.fill()});
+      g.restore()}
+    g.restore();
+  });
+}
+function drawCoverBg(g,W,H,t,level){
+  g.fillStyle='#0b0a08';g.fillRect(0,0,W,H);
+  if(S.coverBlur){g.globalAlpha=.85;g.drawImage(S.coverBlur,0,0,W,H);g.globalAlpha=1}
+  g.fillStyle='rgba(11,10,8,.45)';g.fillRect(0,0,W,H);
+  if(S.cover){const sz=W*.62*(1+.03*Math.sin(t*.5))*(1+level*.015),x=(W-sz)/2,y=H*.14;
+    g.save();g.shadowColor='rgba(0,0,0,.6)';g.shadowBlur=W*.06;g.shadowOffsetY=W*.02;g.drawImage(S.cover,x,y,sz,sz);g.restore();
+    g.strokeStyle='rgba(201,164,92,.5)';g.lineWidth=2;g.strokeRect(x,y,sz,sz)}
+}
+function drawVinyl(g,W,H,t,level){
+  g.fillStyle='#0b0a08';g.fillRect(0,0,W,H);
+  const cx=W/2,cy=H*.33,R=W*.38*(1+level*.02);
+  const glow=g.createRadialGradient(cx,cy,R*.4,cx,cy,R*1.9);glow.addColorStop(0,'rgba(201,164,92,.22)');glow.addColorStop(1,'rgba(201,164,92,0)');g.fillStyle=glow;g.fillRect(0,0,W,H);
+  g.save();g.translate(cx,cy);g.rotate(t*Math.PI*2*(33.3/60));
+  g.fillStyle='#0d0c0a';g.beginPath();g.arc(0,0,R,0,6.29);g.fill();
+  g.strokeStyle='rgba(255,255,255,.05)';g.lineWidth=1;for(let r=R*.38;r<R*.98;r+=R*.018){g.beginPath();g.arc(0,0,r,0,6.29);g.stroke()}
+  const sh=g.createLinearGradient(-R,-R,R,R);sh.addColorStop(.3,'rgba(255,255,255,0)');sh.addColorStop(.5,'rgba(255,255,255,.07)');sh.addColorStop(.7,'rgba(255,255,255,0)');g.fillStyle=sh;g.beginPath();g.arc(0,0,R,0,6.29);g.fill();
+  if(S.cover){g.save();g.beginPath();g.arc(0,0,R*.34,0,6.29);g.clip();g.drawImage(S.cover,-R*.34,-R*.34,R*.68,R*.68);g.restore()}
+  g.fillStyle='#0b0a08';g.beginPath();g.arc(0,0,R*.025,0,6.29);g.fill();
+  g.strokeStyle='rgba(201,164,92,.6)';g.lineWidth=2;g.beginPath();g.arc(0,0,R,0,6.29);g.stroke();
+  g.restore();
+}
+function drawMinimalBg(g,W,H,t,level){
+  g.fillStyle='#0b0a08';g.fillRect(0,0,W,H);
+  const rg=g.createRadialGradient(W/2,H*.45,0,W/2,H*.45,H*.6);rg.addColorStop(0,`rgba(201,164,92,${.08+level*.06})`);rg.addColorStop(1,'rgba(201,164,92,0)');g.fillStyle=rg;g.fillRect(0,0,W,H);
+}
+// Loudness bars around time t, straight from the audio samples
+function levels(t,n){
+  const sr=S.buffer.sampleRate,m=S.mono,span=.5*sr,start=Math.floor(t*sr-span/2),seg=Math.floor(span/n),out=new Array(n);
+  for(let b=0;b<n;b++){let s=0,c=0;for(let j=start+b*seg;j<start+(b+1)*seg;j+=8){if(j>=0&&j<m.length){s+=m[j]*m[j];c++}}out[b]=c?Math.min(1,Math.sqrt(s/c)*3.2):0}
+  return out;
+}
+function levelAt(t){const v=levels(t,4);return (v[1]+v[2])/2}
+function drawWaveform(g,W,H,y,t,widthFrac){
+  const n=56,v=levels(t,n),bw=W*widthFrac/n,x0=(W-W*widthFrac)/2,maxH=H*.05;
+  const grad=g.createLinearGradient(x0,0,x0+W*widthFrac,0);grad.addColorStop(0,'rgba(181,140,69,.4)');grad.addColorStop(.5,'#f1d99a');grad.addColorStop(1,'rgba(181,140,69,.4)');
+  g.fillStyle=grad;
+  v.forEach((a,i)=>{const env=Math.sin(Math.PI*(i+.5)/n),h=Math.max(2,a*env*maxH);g.fillRect(x0+i*bw+bw*.2,y-h/2,bw*.6,h)});
+}
+function wrap(g,text,maxW){const words=text.split(/\s+/),rows=[];let cur='';
+  words.forEach(w=>{const tryS=cur?cur+' '+w:w;if(g.measureText(tryS).width>maxW&&cur){rows.push(cur);cur=w}else cur=tryS});if(cur)rows.push(cur);return rows}
+function drawLyrics(g,W,H,t,yCenter,size){
+  const i=lineAt(t);if(i<0)return;
+  const l=S.lines[i],next=S.lines.slice(i+1).find(x=>x.t!=null);
+  const lineEnd=next?Math.min(next.t,l.t+7):l.t+5;
+  if(!next&&t>l.t+6)return;
+  const age=t-l.t,inA=Math.min(1,age/.25),outA=next?Math.min(1,Math.max(0,(next.t-t)/.15)):1,alpha=inA*outA;
+  const p=Math.min(1,Math.max(0,(t-l.t)/Math.max(.5,(lineEnd-l.t)*.9)));
+  g.font=`600 ${size}px "Cormorant Garamond", Georgia, serif`;g.textAlign='center';g.textBaseline='middle';
+  const rows=wrap(g,l.text,W*.84),lh=size*1.12,y0=yCenter-(rows.length-1)*lh/2+(1-inA)*size*.35;
+  const widths=rows.map(r=>g.measureText(r).width),total=widths.reduce((a,b)=>a+b,0);let fill=p*total;
+  g.save();g.globalAlpha=alpha;g.shadowColor='rgba(0,0,0,.55)';g.shadowBlur=size*.25;
+  rows.forEach((r,k)=>{const y=y0+k*lh,w=widths[k],x=W/2;
+    g.fillStyle='rgba(236,229,214,.5)';g.fillText(r,x,y);
+    const f=Math.max(0,Math.min(w,fill));fill-=w;
+    if(f>0){g.save();g.beginPath();g.rect(x-w/2,y-lh/2,f,lh);g.clip();g.shadowBlur=0;g.fillStyle='#f1d99a';g.fillText(r,x,y);g.restore()}
+  });
+  g.restore();
+  if(next){g.save();g.globalAlpha=.32*alpha;g.font=`italic 500 ${size*.6}px "Cormorant Garamond", Georgia, serif`;g.fillStyle='#ece5d6';
+    const nr=wrap(g,next.text,W*.8);g.fillText(nr[0]+(nr.length>1?'…':''),W/2,y0+rows.length*lh+size*.25);g.restore()}
+}
+function spaced(g,text,x,y,spacing){ // letter-spaced text, centred
+  const chars=[...text],widths=chars.map(c=>g.measureText(c).width),total=widths.reduce((a,b)=>a+b,0)+spacing*(chars.length-1);
+  let cx=x-total/2;g.textAlign='left';chars.forEach((c,i)=>{g.fillText(c,cx,y);cx+=widths[i]+spacing});g.textAlign='center';
+}
+// One frame of a clip. tc = seconds since the clip started.
+function drawFrame(g,W,H,clip,tc,opts){
+  const t=clip.start+tc,level=levelAt(t),u=W/1080;
+  if(clip.style==='skyline')drawSkyline(g,W,H,tc,clip.sky!=='night',level);
+  else if(clip.style==='cover')drawCoverBg(g,W,H,tc,level);
+  else if(clip.style==='vinyl')drawVinyl(g,W,H,tc,level);
+  else drawMinimalBg(g,W,H,tc,level);
+  // readable band behind the lyrics
+  if(clip.style==='skyline'){const band=g.createLinearGradient(0,H*.18,0,H*.62);band.addColorStop(0,'rgba(11,10,8,0)');band.addColorStop(.5,'rgba(11,10,8,.55)');band.addColorStop(1,'rgba(11,10,8,0)');g.fillStyle=band;g.fillRect(0,H*.18,W,H*.44)}
+  // brand at the top
+  g.textBaseline='middle';g.fillStyle='#f1d99a';g.font=`600 ${30*u}px Cinzel, Georgia, serif`;spaced(g,BRAND.name,W/2,H*.075,9*u);
+  g.fillStyle='rgba(236,229,214,.85)';g.font=`italic 500 ${40*u}px "Cormorant Garamond", Georgia, serif`;g.fillText(S.title,W/2,H*.075+52*u);
+  // lyrics and waveform, placed by look (kept clear of TikTok's buttons at the bottom and right)
+  const lyrY={skyline:H*.4,cover:H*.6,vinyl:H*.62,minimal:H*.45}[clip.style];
+  const hasLyrics=S.lines.some(l=>l.t!=null);
+  if(hasLyrics)drawLyrics(g,W,H,t,lyrY,(clip.style==='minimal'?92:78)*u);
+  else{g.font=`600 ${96*u}px "Cormorant Garamond", Georgia, serif`;g.fillStyle='#f1d99a';g.fillText(S.title,W/2,lyrY)}
+  drawWaveform(g,W,H,{skyline:H*.54,cover:H*.73,vinyl:H*.74,minimal:H*.6}[clip.style],t,.62);
+  // handle under the waveform
+  g.font=`400 ${30*u}px Jost, sans-serif`;g.fillStyle='rgba(236,229,214,.75)';spaced(g,opts.handle,W/2,H*.79,3*u);
+  // opening text
+  if(opts.hook&&tc<3.2){const a=Math.min(1,tc/.2)*Math.min(1,(3.2-tc)/.3);g.save();g.globalAlpha=a;
+    g.font=`500 ${46*u}px Jost, sans-serif`;const w=g.measureText(opts.hook).width+60*u;
+    g.fillStyle='rgba(11,10,8,.75)';g.fillRect(W/2-w/2,H*.155-36*u,w,72*u);g.strokeStyle='rgba(241,217,154,.7)';g.lineWidth=2;g.strokeRect(W/2-w/2,H*.155-36*u,w,72*u);
+    g.fillStyle='#ece5d6';g.fillText(opts.hook,W/2,H*.155);g.restore()}
+  // end card
+  const endLen=2.4;if(tc>clip.len-endLen){const a=Math.min(1,(tc-(clip.len-endLen))/.5);g.save();g.globalAlpha=a*.88;g.fillStyle='#0b0a08';g.fillRect(0,0,W,H);g.globalAlpha=a;
+    if(S.cover){const sz=W*.42;g.drawImage(S.cover,(W-sz)/2,H*.3,sz,sz);g.strokeStyle='rgba(201,164,92,.6)';g.lineWidth=2;g.strokeRect((W-sz)/2,H*.3,sz,sz)}
+    g.fillStyle='#f1d99a';g.font=`600 ${72*u}px "Cormorant Garamond", Georgia, serif`;g.fillText(S.title,W/2,H*.3+W*.42+90*u);
+    g.fillStyle='#ece5d6';g.font=`400 ${36*u}px Jost, sans-serif`;g.fillText(opts.endcard,W/2,H*.3+W*.42+160*u);
+    g.fillStyle='#c9a45c';g.font=`600 ${28*u}px Cinzel, Georgia, serif`;spaced(g,BRAND.name,W/2,H*.3+W*.42+220*u,8*u);g.restore()}
+  // fade in from black
+  if(tc<.35){g.fillStyle=`rgba(0,0,0,${1-tc/.35})`;g.fillRect(0,0,W,H)}
+}
+function opts(){return {hook:$('hook').value.trim(),handle:$('handle').value.trim(),endcard:$('endcard').value.trim()||'Out now on all platforms'}}
+
+/* ================= Preview ================= */
+const pv=$('preview'),pg=pv.getContext('2d');let pvSrc=null,pvRAF=0,pvClip=null,pvT0=0;
+function drawIdle(){
+  pg.fillStyle='#0b0a08';pg.fillRect(0,0,pv.width,pv.height);
+  if(S.cover){const sz=pv.width*.5;pg.globalAlpha=.9;pg.drawImage(S.cover,(pv.width-sz)/2,pv.height*.3,sz,sz);pg.globalAlpha=1}
+}
+function stopPreview(){if(pvSrc){try{pvSrc.stop()}catch(e){}pvSrc=null}cancelAnimationFrame(pvRAF);$('pvStop').disabled=true}
+async function startPreview(i){
+  stopPreview();syncAudio.pause();const clip=S.clips[i];if(!clip)return;
+  await document.fonts.ready;
+  const ctx=AC();await ctx.resume();
+  pvSrc=ctx.createBufferSource();pvSrc.buffer=S.buffer;
+  const gain=ctx.createGain();pvSrc.connect(gain);gain.connect(ctx.destination);
+  pvT0=ctx.currentTime+.05;gain.gain.setValueAtTime(0,pvT0);gain.gain.linearRampToValueAtTime(1,pvT0+.3);
+  gain.gain.setValueAtTime(1,pvT0+clip.len-1.2);gain.gain.linearRampToValueAtTime(0,pvT0+clip.len);
+  pvSrc.start(pvT0,clip.start,clip.len);pvClip=clip;$('pvStop').disabled=false;
+  $('pvCap').textContent=`Clip ${i+1} · ${STYLE_NAMES[clip.style]} · ${fmt(clip.start)}–${fmt(clip.start+clip.len)}`;
+  const o=opts();
+  const loop=()=>{const tc=ctx.currentTime-pvT0;if(tc>clip.len){stopPreview();return}drawFrame(pg,pv.width,pv.height,clip,Math.max(0,tc),o);pvRAF=requestAnimationFrame(loop)};loop();
+}
+$('pvStop').addEventListener('click',stopPreview);
+
+/* ================= Step 4: render MP4s ================= */
+async function renderClip(clip,onProgress){
+  const W=1080,H=1920,FPS=30,buf=S.buffer,sr=buf.sampleRate,ch=2;
+  const canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;const g=canvas.getContext('2d',{alpha:false});
+  const muxer=new Mp4Muxer.Muxer({target:new Mp4Muxer.ArrayBufferTarget(),video:{codec:'avc',width:W,height:H,frameRate:FPS},audio:{codec:AUDIO_CODEC,sampleRate:sr,numberOfChannels:ch},fastStart:'in-memory',firstTimestampBehavior:'offset'});
+  let failed=null;
+  const ve=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m),error:e=>failed=e});
+  ve.configure({codec:VIDEO_CODEC,width:W,height:H,bitrate:9e6,framerate:FPS,avc:{format:'avc'}});
+  const ae=new AudioEncoder({output:(c,m)=>muxer.addAudioChunk(c,m),error:e=>failed=e});
+  ae.configure({codec:AUDIO_CODEC==='aac'?'mp4a.40.2':'opus',sampleRate:sr,numberOfChannels:ch,bitrate:192000});
+  // audio with a short fade in and out
+  const s0=Math.floor(clip.start*sr),n=Math.min(Math.floor(clip.len*sr),buf.length-s0),fadeIn=.3*sr,fadeOut=1.2*sr;
+  const L=buf.getChannelData(0),R=buf.numberOfChannels>1?buf.getChannelData(1):L;
+  for(let off=0;off<n;off+=4096){
+    const fr=Math.min(4096,n-off),data=new Float32Array(fr*ch);
+    for(let i=0;i<fr;i++){const k=off+i,gain=Math.min(1,k/fadeIn,(n-k)/fadeOut);data[i]=L[s0+k]*gain;data[fr+i]=R[s0+k]*gain}
+    const ad=new AudioData({format:'f32-planar',sampleRate:sr,numberOfFrames:fr,numberOfChannels:ch,timestamp:Math.round(off/sr*1e6),data});
+    ae.encode(ad);ad.close();
+  }
+  const o=opts(),frames=Math.floor(clip.len*FPS);
+  for(let f=0;f<frames;f++){
+    if(failed)throw failed;
+    drawFrame(g,W,H,clip,f/FPS,o);
+    const vf=new VideoFrame(canvas,{timestamp:Math.round(f*1e6/FPS),duration:Math.round(1e6/FPS)});
+    ve.encode(vf,{keyFrame:f%(FPS*2)===0});vf.close();
+    if(ve.encodeQueueSize>6)await new Promise(r=>ve.addEventListener('dequeue',r,{once:true}));
+    if(f%10===0){onProgress(f/frames);await new Promise(r=>setTimeout(r,0))}
+  }
+  await ve.flush();await ae.flush();if(failed)throw failed;
+  muxer.finalize();ve.close();ae.close();onProgress(1);
+  return new Blob([muxer.target.buffer],{type:'video/mp4'});
+}
+function fileName(i,clip){return `${S.title} - clip ${i+1} - ${STYLE_NAMES[clip.style].toLowerCase()}.mp4`.replace(/[\\/:*?"<>|]/g,'')}
+$('renderAll').addEventListener('click',async()=>{
+  stopPreview();const btn=$('renderAll'),st=$('renderStatus');btn.disabled=true;$('dlAll').hidden=true;
+  await document.fonts.load('600 80px "Cormorant Garamond"');await document.fonts.load('italic 500 40px "Cormorant Garamond"');await document.fonts.load('600 30px Cinzel');await document.fonts.load('400 30px Jost');
+  S.outputs.forEach(o=>URL.revokeObjectURL(o.url));S.outputs=[];
+  const els=[...$('clips').children];const t0=performance.now();
+  for(let i=0;i<S.clips.length;i++){
+    const el=els[i],bar=el.querySelector('.prog i'),done=el.querySelector('.done');done.textContent='';
+    st.textContent=`Making clip ${i+1} of ${S.clips.length}…`;st.className='status';
+    try{
+      const blob=await renderClip(S.clips[i],p=>bar.style.width=(p*100)+'%');
+      const url=URL.createObjectURL(blob),name=fileName(i,S.clips[i]);S.outputs.push({url,name});
+      done.innerHTML=`<a href="${url}" download="${name.replace(/"/g,'')}">Download (${(blob.size/1048576).toFixed(1)} MB)</a>`;
+    }catch(e){done.textContent='Failed';st.textContent=`Clip ${i+1} failed: ${e.message||e}`;st.className='status bad';console.error(e)}
+  }
+  if(S.outputs.length){st.textContent=`Done. ${S.outputs.length} clips made in ${Math.round((performance.now()-t0)/1000)} seconds.`;st.className='status ok';$('dlAll').hidden=false}
+  btn.disabled=false;
+});
+$('dlAll').addEventListener('click',async()=>{for(const o of S.outputs){const a=document.createElement('a');a.href=o.url;a.download=o.name;document.body.appendChild(a);a.click();a.remove();await new Promise(r=>setTimeout(r,400))}});
+drawIdle();
+</script>
+</body>
+</html>
